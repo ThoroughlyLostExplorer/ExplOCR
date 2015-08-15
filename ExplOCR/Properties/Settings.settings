@@ -1,0 +1,57 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="ExplOCR.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="ScreenshotX" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="ScreenshotY" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="ScreenshotW" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">410</Value>
+    </Setting>
+    <Setting Name="ScreenshotH" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">1200</Value>
+    </Setting>
+    <Setting Name="DimensionX" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">15</Value>
+    </Setting>
+    <Setting Name="DimensionY" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">15</Value>
+    </Setting>
+    <Setting Name="WordDistanceSmall" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">3</Value>
+    </Setting>
+    <Setting Name="WordDistanceLarge" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">5</Value>
+    </Setting>
+    <Setting Name="KerningEliminationThreshold" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">7</Value>
+    </Setting>
+    <Setting Name="KerningEliminationAutoFill" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">4</Value>
+    </Setting>
+    <Setting Name="LongWordThreshold" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">8</Value>
+    </Setting>
+    <Setting Name="LongSentenceThreshold" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">4</Value>
+    </Setting>
+    <Setting Name="PathBase" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">.\OCR</Value>
+    </Setting>
+    <Setting Name="NetLogDir" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="SamplesNumbers" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">328</Value>
+    </Setting>
+    <Setting Name="SamplesDescriptions" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">4574</Value>
+    </Setting>
+    <Setting Name="SamplesTables" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">2812</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
