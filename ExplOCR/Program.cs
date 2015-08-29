@@ -37,6 +37,23 @@ namespace ExplOCR
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+
+            try
+            {
+                MainMethod(args);
+            }
+            catch (Exception ex)
+            {
+                using (FrmCrash form = new FrmCrash())
+                {
+                    form.SetMessage(ex);
+                    form.ShowDialog();
+                }
+            }
+        }
+
+        private static void MainMethod(string[] args)
+        {
             if (args.Length == 0)
             {
                 Application.Run(new FrmUser());
@@ -45,18 +62,18 @@ namespace ExplOCR
             {
                 Application.Run(new FrmMain());
             }
-            else if( args.Length == 2)
+            else if (args.Length == 2)
             {
                 using (OcrReader ocrReader = LibExplOCR.CreateOcrReader())
                 {
-                    LibExplOCR.ProcessImageFile(ocrReader, args[0], false);
+                    LibExplOCR.ProcessImageFile(ocrReader, args[0]);
                     if (Path.GetExtension(args[1]).ToLower() == ".xml")
                     {
-                        File.WriteAllText(args[1], ocrReader.GetDataXML());
+                        File.WriteAllText(args[1], OutputConverter.GetDataXML(ocrReader.Items));
                     }
                     else
                     {
-                        File.WriteAllText(args[1], ocrReader.GetDataText());
+                        File.WriteAllText(args[1], OutputConverter.GetDataText(ocrReader.Items));
                     }
                 }
             }

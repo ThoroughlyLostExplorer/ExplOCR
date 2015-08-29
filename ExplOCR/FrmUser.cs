@@ -33,6 +33,7 @@ namespace ExplOCR
         {
             ocrReader = LibExplOCR.CreateOcrReader();
             InitializeComponent();
+            previousState = WindowState;
         }
         
         private Bitmap MakeScreenshot()
@@ -57,45 +58,99 @@ namespace ExplOCR
                 errorProvider.SetError(textSystem, "");
             }
 
-            LibExplOCR.ProcessImage(ocrReader, bmp, false, out bmpDisplay);
-            textXML.Text = ocrReader.GetDataXML();
-            textBox2.Text = ocrReader.GetDataText();
+            ocrReader.StitchPrevious = checkStitch.Checked;
+            LibExplOCR.ProcessImage(ocrReader, bmp, out bmpStructure, out bmpHeatmap);
+            imageDisplay.Image = bmpHeatmap;
+            ocrReader.StitchPrevious = false;
+            textXML = OutputConverter.GetDataXML(ocrReader.Items);
+            textShort.Text = OutputConverter.GetDataText(ocrReader.Items);
+
+            if (!checkStitch.Checked && textSystem.Text != "")
+            {
+                textBody.Text = OutputConverter.GetDataBodyCode(textSystem.Text, ocrReader.Items);
+            }
+
             Invalidate();
             Update();
             Refresh();
-            bmpArchive = bmp.Clone() as Bitmap;
 
-            WindowState = FormWindowState.Normal;
-            textBody.SelectAll();
-            textBody.Focus();
-            Activate();
+            if (checkStitch.Checked)
+            {
+                checkStitch.Checked = false;
+                bmpOther.Add(bmp.Clone() as Bitmap);
+            }
+            else
+            {
+                bmpArchive = bmp.Clone() as Bitmap;
+                bmpOther.Clear();
+            }
         }
 
-        private void SaveToArchive(Bitmap archive)
+        private void SaveToArchive()
         {
-            string archiveName = "";
-            Directory.CreateDirectory(PathHelpers.BuildScreenDirectory());
-            for (int i = 0; ; i++)
+            if (checkStitch.Checked)
             {
-                if (File.Exists(PathHelpers.BuildScreenFilename(i)))
-                {
-                    continue;
-                }
-                if (archive != null)
-                {
-                    archive.Save(PathHelpers.BuildScreenFilename(i));
-                    archiveName = Path.GetFileName(PathHelpers.BuildScreenFilename(i));
-                }
-                break;
+                // If stiching several pictures together, save only on last one.
+                ConditionalMinimize();
+                return;
             }
 
-            LibExplOCR.SaveInfo(textXML.Text, textSystem.Text, textBody.Text, archiveName);
-            WindowState = FormWindowState.Minimized;
+            int nextFree = GetUnusedFileNumber();
+            List<string> archiveNames = new List<string>();
+            if (bmpArchive != null)
+            {
+                bmpArchive.Save(PathHelpers.BuildScreenFilename(nextFree));
+                archiveNames.Add(Path.GetFileName(PathHelpers.BuildScreenFilename(nextFree)));
+            }
+            for (int j = 0; j < bmpOther.Count; j++)
+            {
+                string name = PathHelpers.BuildScreenFilename(nextFree);
+                name = Path.GetFileNameWithoutExtension(name) + "_" + (j + 1).ToString() + Path.GetExtension(name);
+                bmpOther[j].Save(Path.Combine(PathHelpers.BuildScreenDirectory(), name));
+                archiveNames.Add(Path.GetFileName(name));
+            }
+
+            LibExplOCR.SaveInfo(textXML, textSystem.Text, textBody.Text, textDescription.Text, textCategories.Text, archiveNames);
+            ConditionalMinimize();
         }
 
+        // Get next available number, without using gaps.
+        private static int GetUnusedFileNumber()
+        {
+            int max = -1;
+            Directory.CreateDirectory(PathHelpers.BuildScreenDirectory());
+            string extension = Path.GetExtension(PathHelpers.BuildScreenFilename(0));
+            string[] files = Directory.GetFiles(PathHelpers.BuildScreenDirectory(), "*" + extension);
+            // Get highest number in use to skip gaps.
+            foreach (string file in files)
+            {
+                max = Math.Max(max, PathHelpers.GetFileNumber(Path.GetFileName(file)));
+            }
+
+            for (int nextFree = max+1; ; nextFree++)
+            {
+                if (!File.Exists(PathHelpers.BuildScreenFilename(nextFree)))
+                {
+                    return nextFree;
+                }
+            }
+        }
+
+        // Minimize, but not when reading an existing file.
+        private void ConditionalMinimize()
+        {
+            if (isTrueScreenshot)
+            {
+                previousState = WindowState;
+                WindowState = FormWindowState.Minimized;
+                isTrueScreenshot = false;
+            }
+        }
+
+        // Read an existing file.
         private void OpenFile()
         {
-            Bitmap bitmap;
+            bool processing = false;
             using (OpenFileDialog fd = new OpenFileDialog())
             {
                 if (fd.ShowDialog() != System.Windows.Forms.DialogResult.OK)
@@ -104,27 +159,55 @@ namespace ExplOCR
                 }
                 try
                 {
-                    bitmap = new Bitmap(fd.FileName);
+                    using (Bitmap bitmap = new Bitmap(fd.FileName))
+                    {
+
+                        Rectangle r = new Rectangle(ExplOCR.Properties.Settings.Default.ScreenshotX, ExplOCR.Properties.Settings.Default.ScreenshotY,
+                            ExplOCR.Properties.Settings.Default.ScreenshotW, ExplOCR.Properties.Settings.Default.ScreenshotH);
+                        r.Width = Math.Min(r.Width, bitmap.Width - r.X);
+                        r.Height = Math.Min(r.Height, bitmap.Height - r.Y);
+                        Bitmap b = new Bitmap(r.Width, r.Height);
+                        using (Graphics g = Graphics.FromImage(b))
+                        {
+                            g.DrawImage(bitmap, new Rectangle(0, 0, r.Width, r.Height), r, GraphicsUnit.Pixel);
+                        }
+                        processing = true;
+                        isTrueScreenshot = false;
+                        ProcessScreenshot(b);
+                    }
                 }
                 catch
                 {
-                    MessageBox.Show("Couldn't load");
-                }
-                try
-                {
-                    LibExplOCR.ProcessImageFile(ocrReader, fd.FileName, false, out bmpDisplay);
-                    textXML.Text = ocrReader.GetDataXML();
-                    textBox2.Text = ocrReader.GetDataText();
-                    Invalidate();
-                    Update();
-                    Refresh();
-                }
-                catch
-                {
-                    MessageBox.Show("Couldn't process");
+                    if (processing)
+                    {
+                        MessageBox.Show("Couldn't process");
+                    }
+                    else
+                    {
+                        MessageBox.Show("Couldn't load");
+                    }
                 }
             }
         }
+
+        private void ShowTableForm()
+        {
+            try
+            {
+                timerTick.Enabled = false;
+                using (FrmTable frm = new FrmTable())
+                {
+                    frm.ShowDialog();
+                }
+            }
+            finally
+            {
+                timerTick.Enabled = true;
+            }
+        }
+
+
+        #region Menu Items
 
         private void miFileOpen_Click(object sender, EventArgs e)
         {
@@ -133,7 +216,7 @@ namespace ExplOCR
 
         private void miFileSave_Click(object sender, EventArgs e)
         {
-            SaveToArchive(bmpArchive);
+            SaveToArchive();
         }
 
         private void miFileExit_Click(object sender, EventArgs e)
@@ -143,67 +226,8 @@ namespace ExplOCR
 
         private void miTableDisplay_Click(object sender, EventArgs e)
         {
-            TransferItem[][] array;
-            XmlSerializer ser = new XmlSerializer(typeof(TransferItem[][]));
-            try
-            {
-                using (FileStream fs = File.OpenRead(PathHelpers.BuildSaveFilename()))
-                {
-                    array = ser.Deserialize(fs) as TransferItem[][];
-                }
-            }
-            catch
-            {
-                array = new TransferItem[0][];
-            }
-
-
-            using (FrmTable frm = new FrmTable())
-            {
-                frm.SetValues(array);
-                frm.ShowDialog();
-            }
+            ShowTableForm();
         }
-
-        private void panelScreen_Paint(object sender, PaintEventArgs e)
-        {
-            e.Graphics.FillRectangle(Brushes.Black, panelScreen.ClientRectangle);
-            if (bmpDisplay == null)
-            {
-                return;
-            }
-            e.Graphics.DrawImage(bmpDisplay, 0, 0, bmpDisplay.Width, bmpDisplay.Height);
-        }
-
-        private void timer1_Tick(object sender, EventArgs e)
-        {
-            if (Control.ModifierKeys != (Keys.Shift | Keys.Alt | Keys.Control))
-            {
-                return;
-            }
-
-            using (Bitmap bmp = MakeScreenshot())
-            {
-                ProcessScreenshot(bmp);
-            }
-        }
-
-        private void buttonSave_Click(object sender, EventArgs e)
-        {
-            SaveToArchive(bmpArchive);
-        }
-
-        private void EditBox_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (e.KeyChar == 13)
-            {
-                SaveToArchive(bmpArchive);
-            }
-        }
-
-        OcrReader ocrReader;
-        Bitmap bmpArchive;
-        Bitmap bmpDisplay;
 
         private void miConfigNetLogDir_Click(object sender, EventArgs e)
         {
@@ -212,5 +236,66 @@ namespace ExplOCR
                 dlg.ShowDialog();
             }
         }
+
+        #endregion
+
+        private void buttonSave_Click(object sender, EventArgs e)
+        {
+            SaveToArchive();
+        }
+
+        private void buttonEdit_Click(object sender, EventArgs e)
+        {
+            using (Form dlg = new FrmQuickEdit())
+            {
+                dlg.ShowDialog();
+            }
+        }
+
+        private void buttonBrowse_Click(object sender, EventArgs e)
+        {
+            ShowTableForm();
+        }
+
+        private void timer_Tick(object sender, EventArgs e)
+        {
+            if (Control.ModifierKeys != (Keys.Shift | Keys.Alt | Keys.Control))
+            {
+                return;
+            }
+
+            using (Bitmap bmp = MakeScreenshot())
+            {
+                isTrueScreenshot = true;
+                ProcessScreenshot(bmp);
+
+                WindowState = previousState;
+                textBody.SelectAll();
+                textBody.Focus();
+                Activate();
+            }
+        }
+
+        private void EditBox_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == 13)
+            {
+                SaveToArchive();
+            }
+        }
+
+        #region Private Variables
+
+        OcrReader ocrReader;
+        Bitmap bmpArchive;
+        List<Bitmap> bmpOther = new List<Bitmap>();
+        Bitmap bmpStructure;
+        Bitmap bmpHeatmap;
+        string textXML;
+        FormWindowState previousState;
+        bool isTrueScreenshot = false;
+
+        #endregion
+
     }
 }

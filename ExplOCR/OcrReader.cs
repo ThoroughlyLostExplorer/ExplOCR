@@ -28,11 +28,13 @@ namespace ExplOCR
 {
     public class OcrReader : IDisposable
     {
-        internal OcrReader(NeuralNet descriptions, NeuralNet tables, NeuralNet numbers)
+        internal OcrReader(NeuralNet descriptions, NeuralNet tables, NeuralNet numbers, NeuralNet headlines, NeuralNet delimiters)
         {
             nnDescriptions = descriptions;
             nnTables = tables;
             nnNumbers = numbers;
+            nnHeadlines = headlines;
+            nnDelimiters = delimiters;
 
             tableConfig = TableItem.Load(PathHelpers.BuildConfigFilename("TableItems"));
             descriptionConfig = DescriptionItem.Load(PathHelpers.BuildConfigFilename("Descriptions"));
@@ -52,83 +54,228 @@ namespace ExplOCR
             wordListDescription = tmp.ToArray();
         }
 
-        internal void ReadPage(Bytemap imageGray, Bytemap imageBinary, PageSections sections, bool raw)
+        internal void ReadPage(Bytemap imageGray, Bytemap imageBinary, PageSections sections)
         {
+            int descriptionLimit = -1;
+            qualityData.Clear();
+            List<TransferItem> output = new List<TransferItem>();
+
+            // Get rid of those pesky powerplay tables.
+            foreach (IPageSection section in sections.AllSections)
+            {
+                if (section is TextSection)
+                {
+                    descriptionLimit = section.Bounds.Bottom;
+                }
+            }
+
+            foreach (IPageSection section in sections.AllSections)
+            {
+                if (section is HeadlineSection)
+                {
+                    TransferItem ti = ReadHeadline(section as HeadlineSection, imageGray, imageBinary);
+                    if (ti != null)
+                    {
+                        output.Add(ti);
+                    }
+                }
+                if (section is TextSection)
+                {
+                    output.Add(ReadDescription(section as TextSection, imageGray, imageBinary));
+                }
+                if (section is TableSection)
+                {
+                    if (descriptionLimit > section.Bounds.Top)
+                    {
+                        continue;
+                    }
+                    output.AddRange(ReadTableSection(section as TableSection, sections, imageGray, imageBinary));
+                }
+                if (section is TextLineSection)
+                {
+                    TransferItem ti;
+                    TextLineSection tsl = section as TextLineSection;
+                    ti = ReadTerraformingLine(tsl, sections, imageGray, imageBinary);
+                    if (ti != null)
+                    {
+                        output.Add(ti);
+                    }
+
+                    ti = ReadMiningReservesLine(tsl, sections, imageGray, imageBinary);
+                    if (ti != null)
+                    {
+                        output.Add(ti);
+                    }
+                }
+            }
+            CustomItemProcessing(output);
+            if (StitchPrevious)
+            {
+                output = MergeItems(currentItems, output);
+            }
+            currentItems = output.ToArray();
+        }
+
+        internal void ReadPageClassic(Bytemap imageGray, Bytemap imageBinary, PageSections sections)
+        {
+            qualityData.Clear();
             List<TransferItem> output = new List<TransferItem>();
             if (sections.DescriptiveText != null)
             {
-                output.Add(ReadDescription(imageGray, imageBinary, sections, raw));
+                output.Add(ReadDescription(sections.DescriptiveText, imageGray, imageBinary));
+            }
+
+            foreach (HeadlineSection hl in sections.Headlines)
+            {
+                TransferItem ti = ReadHeadline(hl, imageGray, imageBinary);
+                if (ti != null)
+                {
+                    output.Add(ti);
+                }
             }
 
             foreach (TableSection table in sections.Tables)
             {
-                output.Add(new TransferItem("DELIMITER"));
-                for (int i = 0; i < table.Count; i++)
-                {
-                    // TODO: For now, do not allow table items that are above the
-                    // description. This would be configurable in the future.
-                    if (sections.DescriptiveText != null && table.Bounds.Bottom < sections.DescriptiveText.Bounds.Top)
-                    {
-                        continue;
-                    }
-
-                    List<Line> left;
-                    List<Line> right;
-                    GetTableItem(table, i, out left, out right);
-                    output.Add(ReadTableItem(imageGray, imageBinary, left, right, raw));
-                    i += (left.Count - 1);
-                }
+                output.AddRange(ReadTableSection(table, sections, imageGray, imageBinary));
             }
 
             foreach (TextLineSection tsl in sections.TextLines)
             {
-                // Terraforming description is above the first table.
-                if (sections.Tables.Count < 1) continue;
-                if (tsl.Line.Bounds.Bottom < sections.Tables[0].Bounds.Top)
+                TransferItem ti;
+                ti = ReadTerraformingLine(tsl, sections, imageGray, imageBinary);
+                if (ti != null)
                 {
-                    string terraforming = "";
-                    List<Rectangle> rs = new List<Rectangle>(tsl.Line);
-                    for (int i = 0; i < tsl.Line.Count; i++)
-                    {
-                        if (i > 0 && ImageLetters.IsNewWord(rs, i, true))
-                        {
-                            terraforming += " ";
-                        }
-                        terraforming += PredictAsLetterD(imageGray, imageBinary, rs[i]);
-                    }
-                    TransferItem ti = GuessTerraforming(terraforming);
-                    if (ti != null)
-                    {
-                        // Single lines are often junk, so forget them.
-                        output.Add(ti);
-                    }
+                    output.Add(ti);
                 }
-                // Mining reserves are stated between first and second table.
-                if (sections.Tables.Count < 2) continue;
-                if (tsl.Line.Bounds.Top > sections.Tables[0].Bounds.Bottom &&
-                    tsl.Line.Bounds.Bottom < sections.Tables[1].Bounds.Top)
+
+                ti = ReadMiningReservesLine(tsl, sections, imageGray, imageBinary);
+                if (ti != null)
                 {
-                    string mining = "";
-                    List<Rectangle> rs = new List<Rectangle>(tsl.Line);
-                    for (int i = 0; i < tsl.Line.Count; i++)
-                    {
-                        if (i > 0 && ImageLetters.IsNewWord(rs, i, true))
-                        {
-                            mining += " ";
-                        }
-                        mining += PredictAsLetterD(imageGray, imageBinary, rs[i]);
-                    }
-                    TransferItem ti = GuessMiningReserves(mining);
-                    if (ti != null)
-                    {
-                        // Single lines are often junk, so forget them.
-                        output.Add(ti);
-                    }
+                    output.Add(ti);
                 }
             }
 
             CustomItemProcessing(output);
-            currentItems = new List<TransferItem>(output);
+            if (StitchPrevious)
+            {
+                output = MergeItems(currentItems, output);
+            }
+            currentItems = output.ToArray();
+        }
+
+        private TransferItem ReadHeadline(HeadlineSection hl, Bytemap imageGray, Bytemap imageBinary)
+        {
+            if (hl.Line.Count < 0) return null;
+            if (hl.Line.Bounds.Height < 18) return null;
+            if (hl.Line[0].Height < 20 && hl.Line[0].Width < 20) return null;
+
+            string content = "";
+            List<Rectangle> rs = new List<Rectangle>(hl.Line);
+            for (int i = 1 /* sic! */; i < hl.Line.Count; i++)
+            {
+                if (i > 1 /* sic! */ && ImageLetters.IsNewHeadlineWord(rs, i))
+                {
+                    content += " ";
+                }
+                content += PredictAsLetterH(imageGray, imageBinary, rs[i]);
+            }
+            TransferItem ti = new TransferItem(WellKnownItems.Headline);
+            ti.Values.Add(new TransferItemValue());
+            ti.Values[0].Text = content;
+            ti.Values[0].Value = double.NaN;
+            return ti;
+        }
+
+        private IEnumerable<TransferItem> ReadTableSection(TableSection table, PageSections sections, Bytemap imageGray, Bytemap imageBinary)
+        {
+            List<TransferItem> tis = new List<TransferItem>();
+            // TODO: For now, do not allow table items that are above the
+            // description. This would be configurable in the future.
+            if (sections.DescriptiveText != null && table.Bounds.Bottom < sections.DescriptiveText.Bounds.Top)
+            {
+                return tis;
+            }
+            if (!HasLeftText(table) || !HasRightText(table))
+            {
+                return tis;
+            }
+
+            tis.Add(new TransferItem("DELIMITER"));
+            for (int i = 0; i < table.Count; i++)
+            {
+                List<Line> left;
+                List<Line> right;
+                GetTableItem(table, i, out left, out right);
+                tis.Add(ReadTableItem(imageGray, imageBinary, left, right));
+                i += (left.Count - 1);
+            }
+            return tis;
+        }
+
+        private bool HasRightText(TableSection table)
+        {
+            foreach (Line line in table)
+            {
+                foreach (Rectangle r in line)
+                {
+                    if (r.Left >= table.Gap.Right) return true;
+                }
+            }
+            return false;
+        }
+
+        private bool HasLeftText(TableSection table)
+        {
+            foreach (Line line in table)
+            {
+                foreach (Rectangle r in line)
+                {
+                    if (r.Right <= table.Gap.Left) return true;
+                }
+            }
+            return false;
+        }
+
+        private TransferItem ReadMiningReservesLine(TextLineSection tsl, PageSections sections, Bytemap imageGray, Bytemap imageBinary)
+        {
+            // Mining reserves are stated between first table and a headline.
+            if (sections.Tables.Count < 1) return null;
+            if (tsl.Line.Bounds.Top <= sections.Tables[0].Bounds.Bottom) return null;
+            int index = sections.AllSections.IndexOf(tsl);
+            if (index < 0 || index + 1 >= sections.AllSections.Count) return null;
+            if (!(sections.AllSections[index + 1] is HeadlineSection)) return null;
+
+            string mining = "";
+            List<Rectangle> rs = new List<Rectangle>(tsl.Line);
+            for (int i = 0; i < tsl.Line.Count; i++)
+            {
+                if (i > 0 && ImageLetters.IsNewWord(rs, i, true))
+                {
+                    mining += " ";
+                }
+                mining += PredictAsLetterD(imageGray, imageBinary, rs[i]);
+            }
+            return GuessMiningReserves(mining);
+        }
+
+        private TransferItem ReadTerraformingLine(TextLineSection tsl, PageSections sections, Bytemap imageGray, Bytemap imageBinary)
+        {
+            // Terraforming description is above the first table.
+            if (sections.Tables.Count < 1) return null;
+            if (tsl.Line.Bounds.Bottom >= sections.Tables[0].Bounds.Top) return null;
+
+            string terraforming = "";
+            List<Rectangle> rs = new List<Rectangle>(tsl.Line);
+            for (int i = 0; i < tsl.Line.Count; i++)
+            {
+                if (i > 0 && ImageLetters.IsNewWord(rs, i, true))
+                {
+                    terraforming += " ";
+                }
+                terraforming += PredictAsLetterD(imageGray, imageBinary, rs[i]);
+            }
+            return GuessTerraforming(terraforming);
+
         }
 
         // Gets the table item starting at line i
@@ -147,13 +294,13 @@ namespace ExplOCR
             }
         }
 
-        private TransferItem ReadDescription(Bytemap imageGray, Bytemap imageBinary, PageSections sections, bool raw)
+        private TransferItem ReadDescription(TextSection desc, Bytemap imageGray, Bytemap imageBinary)
         {
             string description = "";
             List<Rectangle> all = new List<Rectangle>();
-            for (int i = 0; i < sections.DescriptiveText.Count; i++)
+            for (int i = 0; i < desc.Count; i++)
             {
-                all.AddRange(sections.DescriptiveText[i]);
+                all.AddRange(desc[i]);
             }
 
             for (int i = 0; i < all.Count; i++)
@@ -164,9 +311,9 @@ namespace ExplOCR
                 }
                 description += PredictAsLetterD(imageGray, imageBinary, all[i]);
             }
-            TransferItem ti = new TransferItem("DESCRIPTION");
+            TransferItem ti = new TransferItem(WellKnownItems.Description);
             TransferItemValue tv = new TransferItemValue();
-            if (!raw)
+            if (!RawMode)
             {
                 tv.Text = GuessDescription(description);
             }
@@ -233,7 +380,7 @@ namespace ExplOCR
             return null;
         }
 
-        private TransferItem ReadTableItem(Bytemap imageGray, Bytemap imageBinary, List<Line> left, List<Line> right, bool raw)
+        private TransferItem ReadTableItem(Bytemap imageGray, Bytemap imageBinary, List<Line> left, List<Line> right)
         {
             List<Rectangle> allLeft = new List<Rectangle>();
             foreach (Line line in left)
@@ -255,7 +402,7 @@ namespace ExplOCR
             {
                 return null;
             }
-            if (raw)
+            if (RawMode)
             {
                 item.Name = leftText;
             }
@@ -265,6 +412,7 @@ namespace ExplOCR
             {
                 TransferItemValue tv = new TransferItemValue();
                 List<Rectangle> rightLine = new List<Rectangle>(right[i]);
+                if (rightLine.Count == 0) continue;
 
                 if (item.InitialSkip > 0)
                 {
@@ -303,7 +451,7 @@ namespace ExplOCR
                 {
                     tv.Text = SimilarityMatch.GuessWords(accumulateText, wordList);
                 }
-                if (raw)
+                if (RawMode)
                 {
                     tv.Text = accumulateNumber + accumulateText;
                 }
@@ -320,15 +468,24 @@ namespace ExplOCR
 
         private string PredictAsNumber(Bytemap imageGray, Bytemap imageBinary, Rectangle letter)
         {
+            double quality;
             string text = "";
             Bytemap letterMask = ImageLetters.CopyRectangle(imageBinary, letter);
             List<Rectangle> tmp = ImageLetters.CleanupKerning(letterMask, true);
             for (int i = 0; i < tmp.Count; i++)
             {
                 // Reading part of number information: Read as digit.
-                Bytemap letterBytes = ImageLetters.CopyLetter(imageGray, tmp[i]);
+                Bytemap letterBytes = ImageLetters.CopyLetter(imageGray, tmp[i], nnNumbers.InputSize);
                 ApplyLetterMask(i, letterBytes, letterMask);
-                char c = nnNumbers.Predict(letterBytes.Bytes, true);
+                char c;
+                if (IsDelimiter(tmp[i]))
+                {
+                    c = nnDelimiters.Predict(letterBytes.Bytes, false, out quality);
+                }
+                else
+                {
+                    c = nnNumbers.Predict(letterBytes.Bytes, true, out quality);
+                }
                 if (c == '*')
                 {
                     // The current neural net is vulnurable against x/y offsets. Compensate.
@@ -336,10 +493,19 @@ namespace ExplOCR
                     // TODO: Fix radius of planets e.g. 129, 223
                     Rectangle r2 = tmp[i];
                     r2.X += 1;
-                    letterBytes = ImageLetters.CopyLetter(imageGray, r2);
+                    letterBytes = ImageLetters.CopyLetter(imageGray, r2, nnNumbers.InputSize);
                     ApplyLetterMask(i, letterBytes, letterMask);
-                    c = nnNumbers.Predict(ImageLetters.CopyLetter(imageGray, r2).Bytes, true);
+                    if (IsDelimiter(r2))
+                    {
+                        c = nnDelimiters.Predict(ImageLetters.CopyLetter(imageGray, r2, nnNumbers.InputSize).Bytes, true, out quality);
+                    }
+                    else
+                    {
+                        c = nnNumbers.Predict(ImageLetters.CopyLetter(imageGray, r2, nnNumbers.InputSize).Bytes, true, out quality);
+                    }
+                    quality = Math.Max(0, quality - 0.25);
                 }
+                AddQualityData(quality, tmp[i]);
                 FrmMain.DebugLog(c, tmp[i], letterBytes.Bytes);
                 if (c == '*')
                 {
@@ -350,30 +516,63 @@ namespace ExplOCR
             return text;
         }
 
+        private bool IsDelimiter(Rectangle frame)
+        {
+            if (frame.Height <= 5)
+            {
+                return true;
+            }
+            if (frame.Height <= 10 && frame.Width <= 5)
+            {
+                return true;
+            }
+            return false;
+        }
+
         private string PredictAsLetter(Bytemap imageGray, Bytemap imageBinary, Rectangle letter)
         {
+            double quality;
             string text = "";
             Bytemap letterMask = ImageLetters.CopyRectangle(imageBinary, letter);
             List<Rectangle> tmp = ImageLetters.CleanupKerning(letterMask, false);
             for (int i = 0; i < tmp.Count; i++)
             {
-                Bytemap letterBytes = ImageLetters.CopyLetter(imageGray, tmp[i]);
+                Bytemap letterBytes = ImageLetters.CopyLetter(imageGray, tmp[i], nnTables.InputSize);
                 ApplyLetterMask(i, letterBytes, letterMask);
-                text += nnTables.Predict(letterBytes.Bytes, false);
+                text += nnTables.Predict(letterBytes.Bytes, false, out quality);
+                AddQualityData(quality, tmp[i]);
             }
             return text;
         }
 
         private string PredictAsLetterD(Bytemap imageGray, Bytemap imageBinary, Rectangle letter)
         {
+            double quality;
             string text = "";
             Bytemap letterMask = ImageLetters.CopyRectangle(imageBinary, letter);
             List<Rectangle> tmp = ImageLetters.CleanupKerning(letterMask, false);
             for(int i=0; i < tmp.Count; i++)
             {
-                Bytemap letterBytes = ImageLetters.CopyLetter(imageGray, tmp[i]);
+                Bytemap letterBytes = ImageLetters.CopyLetter(imageGray, tmp[i], nnDescriptions.InputSize);
                 ApplyLetterMask(i, letterBytes, letterMask);
-                text += nnDescriptions.Predict(letterBytes.Bytes, false);
+                text += nnDescriptions.Predict(letterBytes.Bytes, false, out quality);
+                AddQualityData(quality, tmp[i]);
+            }
+            return text;
+        }
+
+        private string PredictAsLetterH(Bytemap imageGray, Bytemap imageBinary, Rectangle letter)
+        {
+            double quality;
+            string text = "";
+            Bytemap letterMask = ImageLetters.CopyRectangle(imageBinary, letter);
+            List<Rectangle> tmp = ImageLetters.CleanupKerning(letterMask, false);
+            for (int i = 0; i < tmp.Count; i++)
+            {
+                Bytemap letterBytes = ImageLetters.CopyLetter(imageGray, tmp[i], nnHeadlines.InputSize);
+                ApplyLetterMask(i, letterBytes, letterMask);
+                text += nnHeadlines.Predict(letterBytes.Bytes, false, out quality);
+                AddQualityData(quality, tmp[i]);
             }
             return text;
         }
@@ -382,7 +581,7 @@ namespace ExplOCR
         {
             Rectangle letterFrame = letter.Frame;
             byte[] maskBytes = mask.Bytes;
-            int DimensionX = Properties.Settings.Default.DimensionX;
+            int DimensionX = letter.Frame.Width;
             n += 2;
             byte[] matchMask = new byte[letter.Bytes.Length];
             // Relative position of letter / letterBytes in mask / letterMask.
@@ -605,7 +804,7 @@ namespace ExplOCR
             return null;
         }
 
-        private static void CustomItemProcessing(List<TransferItem> output)
+        private void CustomItemProcessing(List<TransferItem> output)
         {
             for (int i = 0; i < output.Count; i++)
             {
@@ -621,6 +820,7 @@ namespace ExplOCR
                     ti.Values.Add(new TransferItemValue());
                     ti.Values[0].Text = locked;
                     ti.Values[0].Value = double.NaN;
+                    ti.Values[0].Unit = GetDataUnit("ROTATION_LOCKED");
                     output.Insert(i + 1, ti);
                     output[i].Values[0].Text = "";
                 }
@@ -689,76 +889,71 @@ namespace ExplOCR
             }
         }
 
-        public string GetDataXML()
+        private List<TransferItem> MergeItems(IEnumerable<TransferItem> previousItems, IEnumerable<TransferItem> newItems)
         {
-            TransferItem[] array = currentItems.ToArray();
-            XmlSerializer ser = new XmlSerializer(typeof(TransferItem[]));
-            StringWriter writer = new StringWriter();
-            ser.Serialize(writer, array);
-            return writer.ToString();
-        }
-
-        public string GetDataText()
-        {
-            string output = "";
-            foreach (TransferItem ti in currentItems)
+            bool overlapFound = false;
+            List<TransferItem> merged = new List<TransferItem>(previousItems);
+            foreach (TransferItem item in newItems)
             {
-                if (ti == null)
+                if (ItemExistsIn(item, previousItems))
                 {
-                    continue;
+                    overlapFound = true;
                 }
-                if (ti.Name == "DESCRIPTION" && ti.Values.Count > 0)
+                if (overlapFound && !ItemExistsIn(item, previousItems))
                 {
-                    output += ti.Values[0].Text + Environment.NewLine;
+                    merged.Add(item);
                 }
             }
-            foreach (TransferItem ti in currentItems)
+            return merged;
+        }
+
+        private bool ItemExistsIn(TransferItem item, IEnumerable<TransferItem> previousItems)
+        {
+            if (item == null)
             {
-                if (ti == null)
+                return previousItems.Contains(null);
+            }
+            foreach (TransferItem previous in previousItems)
+            {
+                bool match = true;
+                if (previous == null) continue;
+                if (item.Name != previous.Name) continue;
+                if (item.Values == null) continue;
+                if (previous.Values == null) continue;
+                if (item.Values.Count != previous.Values.Count) continue;
+                for (int i = 0; i < item.Values.Count; i++)
                 {
-                    output += "??????" + Environment.NewLine;
-                    continue;
-                }
-                if (ti.Name == "DESCRIPTION")
-                {
-                    continue;
-                }
-                if (ti.Name == "DELIMITER")
-                {
-                    output += "DELIMITER" + Environment.NewLine;
-                    continue;
-                }
-                output += ti.Name;
-                foreach (TransferItemValue tv in ti.Values)
-                {
-                    if (double.IsNaN(tv.Value))
+                    if (item.Values[i].Text != previous.Values[i].Text) match = false;
+                    if (item.Values[i].Unit != previous.Values[i].Unit) match = false;
+                    if (double.IsNaN(item.Values[i].Value))
                     {
-                        output += "        " + tv.Text.ToString() + Environment.NewLine;
+                        if (!double.IsNaN(previous.Values[i].Value)) match = false;
                     }
                     else
                     {
-                        string format = tv.Value > 1e10 ? tv.Value.ToString("e") : tv.Value.ToString();
-                        output += "        " + "[" + format + "]";
-                        if (!string.IsNullOrEmpty(tv.Unit) && Temporary.UnitNames.ContainsKey(tv.Unit))
-                        {
-                            output += " " + Temporary.UnitNames[tv.Unit];
-                        }
-                        if (!string.IsNullOrEmpty(tv.Text))
-                        {
-                            output += " "+tv.Text;
-                        }
-                        output += Environment.NewLine;
+                       if (item.Values[i].Value != previous.Values[i].Value) match = false;
                     }
                 }
+                if (match) return true;
             }
-            return output;
+            return false;
         }
 
-        string[] wordList;
-        string[] wordListDescription;
+        private void AddQualityData(double quality, Rectangle rectangle)
+        {
+            qualityData.Add(new QualityData(quality, rectangle));
+        }
 
-        TableItem[] tableConfig;
-        DescriptionItem[] descriptionConfig;
+        public IEnumerable<QualityData> QualityData
+        {
+            get { return qualityData; }
+        }
+
+        public bool StitchPrevious
+        {
+            get { return stitchMode; }
+            set { stitchMode = value; }
+        }
 
         public void Dispose()
         {
@@ -776,9 +971,40 @@ namespace ExplOCR
             }
         }
 
+        private string GetDataUnit(string name)
+        {
+            foreach (TableItem ti in tableConfig)
+            {
+                if (ti.Name == name) return ti.Unit;
+            }
+            return "";
+        }
+
+        public bool RawMode
+        {
+            get { return rawMode; }
+            set { rawMode = value; }
+        }
+
+        public TransferItem[] Items
+        {
+            get { return currentItems; }
+        }
+
+        bool stitchMode = false;
+
+        string[] wordList;
+        string[] wordListDescription;
+
+        TableItem[] tableConfig;
+        DescriptionItem[] descriptionConfig;
         NeuralNet nnDescriptions;
         NeuralNet nnNumbers;
+        NeuralNet nnHeadlines;
         NeuralNet nnTables;
-        IEnumerable<TransferItem> currentItems = new List<TransferItem>();
+        NeuralNet nnDelimiters;
+        TransferItem[] currentItems = new TransferItem[0];
+        List<QualityData> qualityData = new List<QualityData>();
+        bool rawMode;
     }
 }

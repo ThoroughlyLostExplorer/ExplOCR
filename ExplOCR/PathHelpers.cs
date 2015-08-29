@@ -67,7 +67,28 @@ namespace ExplOCR
 
         public static string BuildScreenFilename(int screen)
         {
-            return Path.Combine(BuildScreenDirectory(), "sysmap" + screen.ToString("D4") + ".png");
+            if (screen < 10000)
+            {
+                return Path.Combine(BuildScreenDirectory(), "sysmap" + screen.ToString("D4") + ".png");
+            }
+            else
+            {
+                return Path.Combine(BuildScreenDirectory(), "sysmap" + screen.ToString("D8") + ".png");
+            }
+        }
+
+        public static int GetFileNumber(string file)
+        {
+            int num;
+            if (!file.StartsWith("sysmap") || !file.EndsWith(".png"))
+            {
+                return -1;
+            }
+            if (!int.TryParse(file.Substring("sysmap".Length, file.Length - "sysmap".Length - ".png".Length), out num))
+            {
+                return -1;
+            }
+            return num;
         }
 
         public static string BuildTeachBaseFilename()

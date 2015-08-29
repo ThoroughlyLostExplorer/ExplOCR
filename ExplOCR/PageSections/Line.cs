@@ -21,7 +21,7 @@ using System.Text;
 
 namespace ExplOCR
 {
-    class Line : IEnumerable<Rectangle>
+    class Line : IEnumerable<Rectangle>, IPageSection
     {
         public Line(Rectangle bounds, IEnumerable<Rectangle> letters)
         {

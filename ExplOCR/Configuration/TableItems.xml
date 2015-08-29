@@ -221,7 +221,7 @@
     <Signed>false</Signed>
     <ExcludeUnit>0</ExcludeUnit>
     <BeltOnly>true</BeltOnly>
-    <Unit>UNITLESS</Unit>
+    <Unit>LITERAL</Unit>
   </TableItem>
   <TableItem>
     <Name>RING_MASS</Name>

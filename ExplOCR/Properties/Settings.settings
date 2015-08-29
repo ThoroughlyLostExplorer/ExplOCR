@@ -38,20 +38,32 @@
     <Setting Name="LongSentenceThreshold" Type="System.String" Scope="Application">
       <Value Profile="(Default)">4</Value>
     </Setting>
-    <Setting Name="PathBase" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">.\OCR</Value>
-    </Setting>
     <Setting Name="NetLogDir" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="PathBase" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">.\OCR</Value>
+    </Setting>
+    <Setting Name="WordDistanceXLarge" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">5</Value>
+    </Setting>
+    <Setting Name="TableLineMinimumHeight" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">10</Value>
+    </Setting>
     <Setting Name="SamplesNumbers" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">328</Value>
+      <Value Profile="(Default)">501</Value>
     </Setting>
     <Setting Name="SamplesDescriptions" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">4574</Value>
     </Setting>
     <Setting Name="SamplesTables" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">2812</Value>
+    </Setting>
+    <Setting Name="SamplesHeadlines" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">5041</Value>
+    </Setting>
+    <Setting Name="SamplesDelimiters" Type="System.String" Scope="User">
+      <Value Profile="(Default)">118</Value>
     </Setting>
   </Settings>
 </SettingsFile>

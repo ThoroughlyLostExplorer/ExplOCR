@@ -23,37 +23,98 @@ namespace ExplOCR
 {
     class PageSections
     {
-        public PageSections(List<TableSection> tables, TextSection text, List<TextLineSection> textLines, List<Rectangle> exclude)
+        public PageSections(List<TableSection> tables, TextSection text, List<TextLineSection> textLines, List<ExcludeSection> exclude, List<HeadlineSection> headlines)
         {
-            Tables = new List<TableSection>(tables);
-            TextLines = textLines;
-            DescriptiveText = text;
-            Excluded = exclude;
-            AllLines = new List<Line>();
+            this.tables = new List<TableSection>(tables);
+            this.headlines = new List<HeadlineSection>(headlines);
+            this.textLines = new List<TextLineSection>(textLines);
+            this.descriptiveText = text;
+            this.excluded =  new List<ExcludeSection>(exclude);
+            this.allLines = new List<Line>();
+            this.allLetters = new List<Rectangle>();
+            this.allSections = new List<IPageSection>();
+
             if (text != null)
             {
-                AllLines.AddRange(text);
+                allLines.AddRange(text);
+                allSections.Add(text);
             }
             foreach (TableSection t in tables)
             {
-                AllLines.AddRange(t);
+                allLines.AddRange(t);
             }
             foreach (TextLineSection t in textLines)
             {
-                AllLines.Add(t.Line);
+                allLines.Add(t.Line);
             }
-            AllLetters = new List<Rectangle>();
+            foreach (HeadlineSection t in headlines)
+            {
+                allLines.Add(t.Line);
+            }
             foreach (Line line in AllLines)
             {
-                AllLetters.AddRange(line);
+                allLetters.AddRange(line);
             }
+
+            allSections.AddRange(tables);
+            allSections.AddRange(headlines);
+            allSections.AddRange(textLines);
+            allSections.AddRange(excluded);
+            allSections.Sort(CompareSections);
         }
 
-        public List<TableSection> Tables;
-        public List<TextLineSection> TextLines;
-        public TextSection DescriptiveText;
-        public List<Rectangle> AllLetters;
-        public List<Line> AllLines;
-        public List<Rectangle> Excluded;
+        public List<TableSection> Tables
+        {
+            get { return tables; }
+        }
+
+        public List<TextLineSection> TextLines
+        {
+            get { return textLines; }
+        }
+
+        public List<HeadlineSection> Headlines
+        {
+            get { return headlines; }
+        }
+
+        public TextSection DescriptiveText
+        {
+            get { return descriptiveText; }
+        }
+
+        public List<ExcludeSection> Excluded
+        {
+            get { return excluded; }
+        }
+
+        public List<IPageSection> AllSections
+        {
+            get { return allSections; }
+        }
+
+        public List<Rectangle> AllLetters
+        {
+            get { return allLetters; }
+        }
+
+        public List<Line> AllLines
+        {
+            get { return allLines; }
+        }
+
+        int CompareSections(IPageSection a, IPageSection b)
+        {
+            return a.Bounds.Top.CompareTo(b.Bounds.Top);
+        }
+
+        public List<TableSection> tables;
+        public List<TextLineSection> textLines;
+        public List<HeadlineSection> headlines;
+        public TextSection descriptiveText;
+        public List<IPageSection> allSections;
+        public List<Rectangle> allLetters;
+        public List<Line> allLines;
+        public List<ExcludeSection> excluded;
     }
 }

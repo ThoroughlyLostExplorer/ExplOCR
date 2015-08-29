@@ -98,11 +98,11 @@ namespace ExplOCR
                 }
             }
 
-            for (int i = 0; i < TrainingConfig.DimensionY; i++)
+            for (int i = 0; i < Properties.Settings.Default.DimensionY; i++)
             {
-                for (int j = 0; j < TrainingConfig.DimensionX; j++)
+                for (int j = 0; j < Properties.Settings.Default.DimensionY; j++)
                 {
-                    int col = 255 - clone[i * TrainingConfig.DimensionX + j];
+                    int col = 255 - clone[i * Properties.Settings.Default.DimensionX + j];
                     Brush b = new SolidBrush(Color.FromArgb(255, col, col, col));
                     e.Graphics.FillRectangle(b, 10 + j * 2, 10 + i * 2, 2, 2);
                     b.Dispose();

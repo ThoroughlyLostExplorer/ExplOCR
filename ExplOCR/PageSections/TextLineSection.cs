@@ -21,13 +21,23 @@ using System.Text;
 
 namespace ExplOCR
 {
-    class TextLineSection
+    class TextLineSection : IPageSection
     {
         public TextLineSection(Line line)
         {
-            this.Line = line;
+            this.line = line;
         }
 
-        public Line Line;
+        public Rectangle Bounds
+        {
+            get { return Line.Bounds; }
+        }
+
+        public Line Line
+        {
+            get { return line; }
+        }
+
+        Line line;
     }
 }

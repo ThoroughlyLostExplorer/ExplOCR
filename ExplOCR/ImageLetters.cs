@@ -36,6 +36,16 @@ namespace ExplOCR
             return letters[i].Left - letters[i - 1].Right > distance || letters[i].Top >= letters[i - 1].Bottom;
         }
 
+        public static bool IsNewHeadlineWord(List<Rectangle> letters, int i)
+        {
+            if (i == 0)
+            {
+                return true;
+            }
+            int distance = Properties.Settings.Default.WordDistanceXLarge;
+            return letters[i].Left - letters[i - 1].Right > distance || letters[i].Top >= letters[i - 1].Bottom;
+        }
+
         // Splits the screen into (text-)lines. Lines are rectangular areas that contain non-0
         // pixels that are separated by 'blank' rows of all-0 pixels.
         public static List<Rectangle> GetPrimitiveLines(Bitmap bmp)
@@ -316,21 +326,21 @@ namespace ExplOCR
             return new Rectangle(r.X + minX, r.Y + minY, 1 + maxX - minX, 1 + maxY - minY);
         }
 
-        public unsafe static byte[] GetLetterImage(Bitmap baseBmp, Rectangle frame)
+        public unsafe static byte[] GetLetterImage(Bitmap baseBmp, Rectangle frame, Size dimension)
         {
             Bitmap bmp = baseBmp.Clone(frame, baseBmp.PixelFormat);
             BitmapData data = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadWrite, bmp.PixelFormat);
-            byte[] bytes = new byte[TrainingConfig.DimensionX * TrainingConfig.DimensionY];
+            byte[] bytes = new byte[dimension.Width * dimension.Height];
             int min = 255;
             try
             {
                 byte* d = (byte*)data.Scan0;
-                for (int i = 0; i < Math.Min(data.Height, TrainingConfig.DimensionY); i++)
+                for (int i = 0; i < Math.Min(data.Height, dimension.Height); i++)
                 {
-                    for (int j = 0; j < Math.Min(data.Width, TrainingConfig.DimensionX); j++)
+                    for (int j = 0; j < Math.Min(data.Width, dimension.Width); j++)
                     {
-                        bytes[i * TrainingConfig.DimensionX + j] = d[4 * (i * data.Width + j)];
-                        min = Math.Min(bytes[i * TrainingConfig.DimensionX + j], min);
+                        bytes[i * dimension.Width + j] = d[4 * (i * data.Width + j)];
+                        min = Math.Min(bytes[i * dimension.Width + j], min);
                     }
                 }
             }
@@ -451,18 +461,18 @@ namespace ExplOCR
 
         /// <summary>
         /// Copy a portion of an existing Bytemap into a new Bytemap. The new bytemap
-        /// will always have a size of DimensionX*DimensionY (i.e. a NN letter) regardless
+        /// will always have a size of 'size' (typically a NN letter) regardless
         /// of the size of area. Pruning and zero-padding are used to ensure this.
         /// No data outside 'area' is copied.
         /// The rectangles that describe the position of the source and the selected area 
         /// are all relative to the original page bitmap that the OCR is processing.
         /// </summary>
-        internal static Bytemap CopyLetter(Bytemap source, Rectangle area)
+        internal static Bytemap CopyLetter(Bytemap source, Rectangle area, Size size)
         {
             byte[] sourceBytes = source.Bytes;
             int sourceW = source.Frame.Width;
-            int dimX = Properties.Settings.Default.DimensionX;
-            int dimY = Properties.Settings.Default.DimensionY;
+            int dimX = size.Width;
+            int dimY = size.Height;
             Bytemap bytemap = new Bytemap(new Rectangle(area.X, area.Y, dimX, dimY));
             byte[] bytes = bytemap.Bytes;
             int min = 255;
@@ -500,7 +510,7 @@ namespace ExplOCR
             area.Intersect(source.Frame);
             if (area.IsEmpty)
             {
-                return new Bytemap(new Rectangle(area.X, area.Y, TrainingConfig.DimensionX, TrainingConfig.DimensionY));
+                return new Bytemap(new Rectangle(area.X, area.Y, Properties.Settings.Default.DimensionX, Properties.Settings.Default.DimensionY));
             }
             byte[] sourceBytes = source.Bytes;
             int sourceW = source.Frame.Width;

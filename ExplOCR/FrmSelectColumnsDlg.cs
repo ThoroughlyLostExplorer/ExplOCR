@@ -46,6 +46,10 @@ namespace ExplOCR
                 checkedList.Items.Clear();
                 foreach (DataGridViewColumn column in grid.Columns)
                 {
+                    if (column.Name.StartsWith("_"))
+                    {
+                        continue;
+                    }
                     checkedList.Items.Add(column.Name, column.Visible);
                 }
             }

@@ -34,6 +34,31 @@ namespace ExplOCR
     {
         public FrmMain()
         {
+            /*string[] files = Directory.GetFiles(PathHelpers.BuildTeachDirectory());
+            Directory.CreateDirectory(PathHelpers.BuildKnowledgeDirectory("headlines"));
+            foreach (string file in files)
+            {
+                string[] lines = File.ReadAllLines(file);
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    LetterInfo info = LetterInfo.ReadLetterInfoLine(lines[i]);
+                    info.X = (int)Math.Round(info.X * 15.0 / 22.0);
+                    byte[] bytes15 = new byte[15 * 22];
+                    byte[] bytes22 = Convert.FromBase64String(info.Base64);
+                    for (int j = 0; j < 15; j++)
+                    {
+                        for (int k = 0; k < 15; k++)
+                        {
+                            bytes15[j * 15 + k] = bytes22[j * 22 + k];
+                        }
+                    }
+                    info.Base64 = Convert.ToBase64String(bytes15);
+                    lines[i] = info.Base64 + "," + info.Screen.ToString() + "," + info.X.ToString() + "," + info.Y.ToString() + "," + info.Char.ToString();
+                }
+                string tmp = PathHelpers.BuildKnowledgeFilename("headlines", Path.GetFileNameWithoutExtension(file));
+                File.WriteAllLines(tmp, lines);
+            }*/
+
             InitializeComponent();
             UpdateUI();
             PrepareBitmaps();
@@ -96,8 +121,9 @@ namespace ExplOCR
             RedrawAll();
             if (doRead)
             {
-                ocrReader.ReadPage(new Bytemap(baseBmp), new Bytemap(drawBmpRaw), pageSections, checkRaw.Checked);
-                textAll.Text = ocrReader.GetDataText();
+                ocrReader.RawMode = checkRaw.Checked;
+                ocrReader.ReadPage(new Bytemap(baseBmp), new Bytemap(drawBmpRaw), pageSections);
+                textAll.Text = OutputConverter.GetDataText(ocrReader.Items);
             }
         }
 
@@ -128,8 +154,9 @@ namespace ExplOCR
                 RedrawAll();
                 if (doRead)
                 {
-                    ocrReader.ReadPage(new Bytemap(baseBmp), new Bytemap(drawBmpRaw), pageSections, checkRaw.Checked);
-                    textAll.Text = ocrReader.GetDataText();
+                    ocrReader.RawMode = checkRaw.Checked;
+                    ocrReader.ReadPage(new Bytemap(baseBmp), new Bytemap(drawBmpRaw), pageSections);
+                    textAll.Text = OutputConverter.GetDataText(ocrReader.Items);
                 }
                 Activate();
             }            
@@ -203,9 +230,15 @@ namespace ExplOCR
                 }
             }
 
+            if (selected.Width == 0 || selected.Height == 0)
+            {
+                return;
+            }
+
             Bitmap reduced = baseBmp.Clone(selected, baseBmp.PixelFormat);
             Bytemap reducedBytes = ImageLetters.ExtractBytes(reduced);
-            selectedBytes = ImageLetters.CopyLetter(reducedBytes, new Rectangle(0,0,selected.Width, selected.Height)).Bytes;
+            Size size = new System.Drawing.Size(Properties.Settings.Default.DimensionX, Properties.Settings.Default.DimensionY);
+            selectedBytes = ImageLetters.CopyLetter(reducedBytes, new Rectangle(0,0,selected.Width, selected.Height), size).Bytes;
 
             panelLetter.Update();
             panelLetter.Refresh();
@@ -297,7 +330,7 @@ namespace ExplOCR
 
             drawBmpRaw = new Bitmap(binary);
             drawBmp = new Bitmap(binary);
-            LibExplOCR.AnnotateDrawBitmap(drawBmp, pageSections);
+            LibExplOCR.AnnotatePageStructure(drawBmp, pageSections);
 
             binary.Dispose();
         }
@@ -357,11 +390,14 @@ namespace ExplOCR
         {
             if(selectedBytes==null) return;
 
-            for (int i = 0; i < TrainingConfig.DimensionY; i++)
+            for (int i = 0; i < Properties.Settings.Default.DimensionY; i++)
             {
-                for (int j = 0; j < TrainingConfig.DimensionX; j++)
+                for (int j = 0; j < Properties.Settings.Default.DimensionX; j++)
                 {
-                    Brush b = new SolidBrush(Color.FromArgb(255, selectedBytes[i * TrainingConfig.DimensionX + j], selectedBytes[i * TrainingConfig.DimensionX + j], selectedBytes[i * TrainingConfig.DimensionX + j]));
+                    Brush b = new SolidBrush(
+                        Color.FromArgb(255, selectedBytes[i * Properties.Settings.Default.DimensionX + j], 
+                                            selectedBytes[i * Properties.Settings.Default.DimensionX + j], 
+                                            selectedBytes[i * Properties.Settings.Default.DimensionX + j]));
                         e.Graphics.FillRectangle(b, j * 10, i * 10, 10, 10);
                         b.Dispose();
                 }
@@ -384,8 +420,9 @@ namespace ExplOCR
                 total.AppendLine("File: " + PathHelpers.BuildAutoTestFilename(i));
                 currentScreen = i;
                 if (!File.Exists(PathHelpers.BuildAutoTestFilename(i))) continue;
-                LibExplOCR.ProcessImageFile(ocrReader, PathHelpers.BuildAutoTestFilename(i), checkRaw.Checked);
-                string s = ocrReader.GetDataText();
+                ocrReader.RawMode = checkRaw.Checked;
+                LibExplOCR.ProcessImageFile(ocrReader, PathHelpers.BuildAutoTestFilename(i));
+                string s = OutputConverter.GetDataTextClassic(ocrReader.Items);
                 string output = Path.Combine(results, Path.GetFileNameWithoutExtension(PathHelpers.BuildAutoTestFilename(i)) + ".txt");
                 File.WriteAllText(output, s);
                 total.AppendLine(s);
@@ -434,7 +471,7 @@ namespace ExplOCR
                         break;
                     }
                 }
-                byte[] letterBytes = ImageLetters.GetLetterImage(baseBmp, frame);
+                byte[] letterBytes = ImageLetters.GetLetterImage(baseBmp, frame, new Size(Properties.Settings.Default.DimensionX, Properties.Settings.Default.DimensionY));
                 string s = LetterInfo.WriteLetterInfoLine(info.Char, frame, currentScreen, Convert.ToBase64String(letterBytes));
                 output.Add(s);
             }
@@ -504,8 +541,9 @@ namespace ExplOCR
             UpdateUI();
             PrepareBitmaps();
             RedrawAll();
-            ocrReader.ReadPage(new Bytemap(baseBmp), new Bytemap(drawBmpRaw), pageSections, checkRaw.Checked);
-            textAll.Text = ocrReader.GetDataText();
+            ocrReader.RawMode = checkRaw.Checked;
+            ocrReader.ReadPage(new Bytemap(baseBmp), new Bytemap(drawBmpRaw), pageSections);
+            textAll.Text = OutputConverter.GetDataTextClassic(ocrReader.Items);
         }
 
         private void radioLetter_CheckedChanged(object sender, EventArgs e)
@@ -541,5 +579,17 @@ namespace ExplOCR
         bool doRead = false;
         bool usingWords = true;
         static List<string> debugStrings = new List<string>();
+
+        private void textLetter_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (buttonScreenB.Enabled &&  e.KeyCode == Keys.F1 && review == null)
+            {
+                SetScreen(currentScreen - 1);
+            }
+            if (buttonScreenF.Enabled && e.KeyCode == Keys.F2 && review == null)
+            {
+                SetScreen(currentScreen + 1);
+            }
+        }
     }
 }
