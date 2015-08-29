@@ -35,36 +35,41 @@ namespace ExplOCR
             return ocrReader;
         }
 
-        public static void ProcessImageFile(OcrReader ocrReader, string file, bool raw)
+        public static void ProcessImageFile(OcrReader ocrReader, string file)
         {
             using (Bitmap bmp = ImageFiles.LoadImageFile(file))
             {
                 Bitmap grayscale, binary;
                 PageSections pageSections = PrepareBitmaps(bmp, out grayscale, out binary);
-                ocrReader.ReadPage(new Bytemap(grayscale), new Bytemap(binary), pageSections, raw);
+                ocrReader.ReadPage(new Bytemap(grayscale), new Bytemap(binary), pageSections);
             }
         }
 
-        public static void ProcessImageFile(OcrReader ocrReader, string file, bool raw, out Bitmap display)
+        public static void ProcessImageFile(OcrReader ocrReader, string file, out Bitmap displayA, out Bitmap displayB)
         {
             using (Bitmap bmp = ImageFiles.LoadImageFile(file))
             {
                 Bitmap grayscale, binary;
                 PageSections pageSections = PrepareBitmaps(bmp, out grayscale, out binary);
-                display = new Bitmap(binary);
-                AnnotateDrawBitmap(display, pageSections);
-                ocrReader.ReadPage(new Bytemap(grayscale), new Bytemap(binary), pageSections, raw);
+
+                displayA = new Bitmap(binary);
+                displayB = new Bitmap(grayscale);
+                AnnotatePageStructure(displayA, pageSections);
+                AnnotatePageHeatmap(displayB, ocrReader.QualityData);
             }
         }
 
-        public static void ProcessImage(OcrReader ocrReader, Bitmap bmp, bool raw, out Bitmap display)
+        public static void ProcessImage(OcrReader ocrReader, Bitmap bmp, out Bitmap displayA, out Bitmap displayB)
         {
             Bitmap grayscale, binary;
             bmp = bmp.Clone() as Bitmap;
             PageSections pageSections = PrepareBitmaps(bmp, out grayscale, out binary);
-            display = new Bitmap(binary);
-            AnnotateDrawBitmap(display, pageSections);
-            ocrReader.ReadPage(new Bytemap(grayscale), new Bytemap(binary), pageSections, raw);
+            ocrReader.ReadPage(new Bytemap(grayscale), new Bytemap(binary), pageSections);
+
+            displayA = new Bitmap(binary);
+            displayB = new Bitmap(grayscale);
+            AnnotatePageStructure(displayA, pageSections);
+            AnnotatePageHeatmap(displayB, ocrReader.QualityData);
         }
 
         internal static PageSections PrepareBitmaps(Bitmap bmp, out Bitmap grayscale, out Bitmap binary)
@@ -74,18 +79,23 @@ namespace ExplOCR
 
             PageSections pageSections = ContextAnalysis.PartitionScreen(splittish);
 
-            // To prevent lower-case letters in the descriptive text area, from being split in two,
+            // To prevent lower-case letters in the descriptive text area from being split in two,
             // overwrite the splittish descriptive text area with the glueish version. 
-            if (pageSections.DescriptiveText != null)
+            using (Graphics g = Graphics.FromImage(splittish))
             {
-                if (pageSections.DescriptiveText.Bounds.Width > 0 && pageSections.DescriptiveText.Bounds.Height > 0)
+                if (pageSections.DescriptiveText != null)
                 {
-                    using (Graphics g = Graphics.FromImage(splittish))
+                    if (pageSections.DescriptiveText.Bounds.Width > 0 && pageSections.DescriptiveText.Bounds.Height > 0)
                     {
                         g.DrawImage(glueish, pageSections.DescriptiveText.Bounds, pageSections.DescriptiveText.Bounds, GraphicsUnit.Pixel);
                     }
                 }
+                foreach (HeadlineSection hl in pageSections.Headlines)
+                {
+                    g.DrawImage(glueish, hl.Line.Bounds, hl.Line.Bounds, GraphicsUnit.Pixel);
+                }
             }
+
             // Partition with the improved descriptive text letters.
             // Apply improved letter / kerning detection.
             pageSections = ContextAnalysis.PartitionScreen(splittish);
@@ -106,7 +116,7 @@ namespace ExplOCR
             ImageProcessing.BinarizeImage(glueish, 0.8);
         }
 
-        internal static void AnnotateDrawBitmap(Bitmap bmp, PageSections sections)
+        internal static void AnnotatePageStructure(Bitmap bmp, PageSections sections)
         {
             if (sections == null)
             {
@@ -118,10 +128,10 @@ namespace ExplOCR
             using (Brush brushHatch = new HatchBrush(HatchStyle.BackwardDiagonal, Color.Purple))
             using (Brush b = new SolidBrush(Color.FromArgb(120, Color.Blue)))
             {
-                foreach (Rectangle exclude in sections.Excluded)
+                foreach (ExcludeSection exclude in sections.Excluded)
                 {
-                    g.FillRectangle(brushHatch, exclude);
-                    g.DrawRectangle(Pens.Purple, exclude);
+                    g.FillRectangle(brushHatch, exclude.Bounds);
+                    g.DrawRectangle(Pens.Purple, exclude.Bounds);
                 }
 
                 foreach (Line line in sections.AllLines)
@@ -142,6 +152,10 @@ namespace ExplOCR
                 foreach (TextLineSection tl in sections.TextLines)
                 {
                     g.DrawRectangle(Pens.Purple, tl.Line.Bounds);
+                }
+                foreach (HeadlineSection hl in sections.Headlines)
+                {
+                    g.DrawRectangle(Pens.Khaki, hl.Line.Bounds);
                 }
 
                 foreach (TableSection table in sections.Tables)
@@ -180,7 +194,36 @@ namespace ExplOCR
             }
         }
 
-        public static void SaveInfo(string xml, string system, string body, string archiveName)
+        private static void AnnotatePageHeatmap(Bitmap bmp, IEnumerable<QualityData> quality)
+        {
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                foreach(QualityData qd in quality)
+                {
+                    Color c = GetQualityScaleColor(qd.Quality);
+                    using (Pen p = new Pen(c, 2))
+                    {
+                        g.DrawLine(p, qd.Frame.Left, qd.Frame.Bottom, qd.Frame.Right, qd.Frame.Bottom);
+                    }
+                }
+            }
+        }
+
+        private static Color GetQualityScaleColor(double q)
+        {
+            if (q < 0.5)
+            {
+                q = 2 * q;
+                return Color.FromArgb(240, (int)(240 * q), 0);
+            }
+            else
+            {
+                q = 2 * (q - 0.5);
+                return Color.FromArgb((int)(240 * (1 - q)), 240, 0);
+            }
+        }
+
+        public static void SaveInfo(string xml, string system, string body, string custom, string category, List<string> archiveNames)
         {
             if (!Directory.Exists(PathHelpers.BuildSaveDirectory()))
             {
@@ -191,27 +234,62 @@ namespace ExplOCR
             StringReader reader = new StringReader(xml);
             TransferItem[] items = ser.Deserialize(reader) as TransferItem[];
 
+            foreach (TransferItem item in items)
+            {
+                if (item.Name == WellKnownItems.Headline && item.Values.Count > 0)
+                {
+                    item.Values[0].Text = system + " " + body;
+                    item.Values[0].Value = double.NaN;
+                    break;
+                }
+            }
+
             List<TransferItem> info = new List<TransferItem>();
             TransferItem ti = new TransferItem();
-            ti.Name = "SYSTEM";
+            ti.Name = WellKnownItems.System;
             ti.Values = new List<TransferItemValue>(new TransferItemValue[] { new TransferItemValue() });
             ti.Values[0].Text = system;
-            ti.Values[0].Value = float.NaN;
+            ti.Values[0].Value = double.NaN;
             info.Add(ti);
             ti = new TransferItem();
-            ti.Name = "BODY";
+            ti.Name = WellKnownItems.BodyCode;
             ti.Values = new List<TransferItemValue>(new TransferItemValue[] { new TransferItemValue() });
             ti.Values[0].Text = body;
-            ti.Values[0].Value = float.NaN;
+            ti.Values[0].Value = double.NaN;
             info.Add(ti);
-            info.AddRange(items);
             ti = new TransferItem();
-            ti.Name = "ARCHIVE_NAME";
+            ti.Name = WellKnownItems.CustomCategory;
             ti.Values = new List<TransferItemValue>(new TransferItemValue[] { new TransferItemValue() });
-            ti.Values[0].Text = archiveName;
-            ti.Values[0].Value = float.NaN;
+            ti.Values[0].Text = category.Replace(Environment.NewLine, ";");
+            ti.Values[0].Value = double.NaN;
             info.Add(ti);
-            info.AddRange(items);
+            ti = new TransferItem();
+            ti.Name = WellKnownItems.CustomDescription;
+            ti.Values = new List<TransferItemValue>(new TransferItemValue[] { new TransferItemValue() });
+            ti.Values[0].Text = custom;
+            ti.Values[0].Value = double.NaN;
+            info.Add(ti);
+            if (archiveNames.Count > 0)
+            {
+                ti = new TransferItem();
+                ti.Name = WellKnownItems.ArchiveName;
+                ti.Values = new List<TransferItemValue>();
+                foreach (string name in archiveNames)
+                {
+                    TransferItemValue tiv = new TransferItemValue();
+                    tiv.Text = name;
+                    tiv.Value = double.NaN;
+                    ti.Values.Add(tiv);
+                }
+                info.Add(ti);
+            }
+            foreach(TransferItem item in items)
+            {
+                if(item.Name != "DELIMITER")
+                {
+                    info.Add(item);
+                }
+            }
             items = info.ToArray();
 
             TransferItem[][] array;
@@ -230,7 +308,7 @@ namespace ExplOCR
 
             List<TransferItem[]> list = new List<TransferItem[]>(array);
             list.Add(items);
-            using (FileStream fs = File.OpenWrite(PathHelpers.BuildSaveFilename()))
+            using (FileStream fs = new FileStream(PathHelpers.BuildSaveFilename(), FileMode.Create, FileAccess.Write))
             {
                 ser.Serialize(fs, list.ToArray());
             }

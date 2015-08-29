@@ -49,6 +49,8 @@
             this.radioLetter = new System.Windows.Forms.RadioButton();
             this.timerKeys = new System.Windows.Forms.Timer(this.components);
             this.splitMain = new System.Windows.Forms.SplitContainer();
+            this.panelScreenContainer = new System.Windows.Forms.Panel();
+            this.panelScreen = new System.Windows.Forms.Panel();
             this.panelScreenC = new System.Windows.Forms.Panel();
             this.buttonRead = new System.Windows.Forms.Button();
             this.buttonAdd = new System.Windows.Forms.Button();
@@ -56,9 +58,7 @@
             this.buttonReview = new System.Windows.Forms.Button();
             this.buttonScreenF = new System.Windows.Forms.Button();
             this.buttonScreenB = new System.Windows.Forms.Button();
-            this.panelScreen = new System.Windows.Forms.Panel();
             this.textAll = new System.Windows.Forms.TextBox();
-            this.panelScreenContainer = new System.Windows.Forms.Panel();
             ((System.ComponentModel.ISupportInitialize)(this.splitText)).BeginInit();
             this.splitText.Panel1.SuspendLayout();
             this.splitText.Panel2.SuspendLayout();
@@ -72,8 +72,8 @@
             this.splitMain.Panel1.SuspendLayout();
             this.splitMain.Panel2.SuspendLayout();
             this.splitMain.SuspendLayout();
-            this.panelScreenC.SuspendLayout();
             this.panelScreenContainer.SuspendLayout();
+            this.panelScreenC.SuspendLayout();
             this.SuspendLayout();
             // 
             // splitText
@@ -151,6 +151,7 @@
             this.textLetter.Size = new System.Drawing.Size(555, 133);
             this.textLetter.TabIndex = 1;
             this.textLetter.TextChanged += new System.EventHandler(this.textLetter_TextChanged);
+            this.textLetter.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textLetter_KeyDown);
             // 
             // panelWordSwitch
             // 
@@ -220,6 +221,26 @@
             this.splitMain.Size = new System.Drawing.Size(1063, 582);
             this.splitMain.SplitterDistance = 504;
             this.splitMain.TabIndex = 2;
+            // 
+            // panelScreenContainer
+            // 
+            this.panelScreenContainer.AutoScroll = true;
+            this.panelScreenContainer.Controls.Add(this.panelScreen);
+            this.panelScreenContainer.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panelScreenContainer.Location = new System.Drawing.Point(0, 0);
+            this.panelScreenContainer.Name = "panelScreenContainer";
+            this.panelScreenContainer.Size = new System.Drawing.Size(504, 543);
+            this.panelScreenContainer.TabIndex = 2;
+            // 
+            // panelScreen
+            // 
+            this.panelScreen.Location = new System.Drawing.Point(0, 0);
+            this.panelScreen.Name = "panelScreen";
+            this.panelScreen.Size = new System.Drawing.Size(450, 1200);
+            this.panelScreen.TabIndex = 0;
+            this.panelScreen.Paint += new System.Windows.Forms.PaintEventHandler(this.panelScreen_Paint);
+            this.panelScreen.MouseClick += new System.Windows.Forms.MouseEventHandler(this.panelScreen_MouseClick);
+            this.panelScreen.MouseMove += new System.Windows.Forms.MouseEventHandler(this.panelScreen_MouseMove);
             // 
             // panelScreenC
             // 
@@ -295,34 +316,15 @@
             this.buttonScreenB.UseVisualStyleBackColor = true;
             this.buttonScreenB.Click += new System.EventHandler(this.buttonScreenB_Click);
             // 
-            // panelScreen
-            // 
-            this.panelScreen.Location = new System.Drawing.Point(0, 0);
-            this.panelScreen.Name = "panelScreen";
-            this.panelScreen.Size = new System.Drawing.Size(450, 1200);
-            this.panelScreen.TabIndex = 0;
-            this.panelScreen.Paint += new System.Windows.Forms.PaintEventHandler(this.panelScreen_Paint);
-            this.panelScreen.MouseClick += new System.Windows.Forms.MouseEventHandler(this.panelScreen_MouseClick);
-            this.panelScreen.MouseMove += new System.Windows.Forms.MouseEventHandler(this.panelScreen_MouseMove);
-            // 
             // textAll
             // 
             this.textAll.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.textAll.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.textAll.Location = new System.Drawing.Point(0, 0);
             this.textAll.Multiline = true;
             this.textAll.Name = "textAll";
             this.textAll.Size = new System.Drawing.Size(555, 582);
             this.textAll.TabIndex = 0;
-            // 
-            // panelScreenContainer
-            // 
-            this.panelScreenContainer.AutoScroll = true;
-            this.panelScreenContainer.Controls.Add(this.panelScreen);
-            this.panelScreenContainer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panelScreenContainer.Location = new System.Drawing.Point(0, 0);
-            this.panelScreenContainer.Name = "panelScreenContainer";
-            this.panelScreenContainer.Size = new System.Drawing.Size(504, 543);
-            this.panelScreenContainer.TabIndex = 2;
             // 
             // FrmMain
             // 
@@ -349,8 +351,8 @@
             this.splitMain.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitMain)).EndInit();
             this.splitMain.ResumeLayout(false);
-            this.panelScreenC.ResumeLayout(false);
             this.panelScreenContainer.ResumeLayout(false);
+            this.panelScreenC.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }

@@ -131,15 +131,6 @@ namespace ExplOCR.Properties {
             }
         }
         
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute(".\\OCR")]
-        public string PathBase {
-            get {
-                return ((string)(this["PathBase"]));
-            }
-        }
-        
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
@@ -152,9 +143,36 @@ namespace ExplOCR.Properties {
             }
         }
         
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute(".\\OCR")]
+        public string PathBase {
+            get {
+                return ((string)(this["PathBase"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("5")]
+        public int WordDistanceXLarge {
+            get {
+                return ((int)(this["WordDistanceXLarge"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("10")]
+        public int TableLineMinimumHeight {
+            get {
+                return ((int)(this["TableLineMinimumHeight"]));
+            }
+        }
+        
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("328")]
+        [global::System.Configuration.DefaultSettingValueAttribute("501")]
         public int SamplesNumbers {
             get {
                 return ((int)(this["SamplesNumbers"]));
@@ -185,6 +203,30 @@ namespace ExplOCR.Properties {
             }
             set {
                 this["SamplesTables"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("5041")]
+        public int SamplesHeadlines {
+            get {
+                return ((int)(this["SamplesHeadlines"]));
+            }
+            set {
+                this["SamplesHeadlines"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("118")]
+        public string SamplesDelimiters {
+            get {
+                return ((string)(this["SamplesDelimiters"]));
+            }
+            set {
+                this["SamplesDelimiters"] = value;
             }
         }
     }

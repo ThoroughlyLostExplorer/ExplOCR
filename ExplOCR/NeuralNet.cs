@@ -39,6 +39,12 @@ namespace ExplOCR
             set { saveFile = value; }
         }
 
+        public float Factor
+        {
+            get { return factor; }
+            set { factor = value; }
+        }
+
         public void Train(int samples)
         {
             if (samples > 0 && TryLoadTrainingSet(samples))
@@ -62,17 +68,29 @@ namespace ExplOCR
 
             Emgu.CV.Matrix<int> layers = new Emgu.CV.Matrix<int>(3, 1);
             layers[0, 0] = pixels;
-            layers[1, 0] = (int)(1.5 * netKeys.Count);
+            layers[1, 0] = (int)(factor * netKeys.Count);
             layers[2, 0] = classes;
 
             for (int i = 0; i < samples; i++)
             {
                 LetterInfo info = LetterInfo.ReadLetterInfoLine(lines[i]);
                 byte[] bytes = Convert.FromBase64String(info.Base64);
+
+                float[] input = AdjustInput(bytes);
                 for (int j = 0; j < pixels; j++)
                 {
-                    training[i, j] = bytes[j];
+                    training[i, j] = input[j];
                 }
+                /*
+for (int a = -1; a <= 1; a++)
+                    for (int b = -1; b <= 1; b++)
+                        for (int c = 0; c < DimensionX; c++)
+                            for (int d = 0; d < DimensionY; d++)
+                            {
+                                if (0 > c + a || c + a >= DimensionX) continue;
+                                if (0 > d + b || d + b >= DimensionY) continue;
+                                training[i, d * DimensionX + c] = bytes[(b + d) * DimensionX + (a + c)];
+                            }                 */
                 int d = netKeys.IndexOf(info.Char);
                 class_training[i, d] = 1;
             }
@@ -120,7 +138,7 @@ namespace ExplOCR
 
             Emgu.CV.Matrix<int> layers = new Emgu.CV.Matrix<int>(3, 1);
             layers[0, 0] = pixels;
-            layers[1, 0] = (int)(1.5 * netKeys.Count);
+            layers[1, 0] = (int)(factor * netKeys.Count);
             layers[2, 0] = classes;
 
             nnet = new Emgu.CV.ML.ANN_MLP(layers, Emgu.CV.ML.MlEnum.ANN_MLP_ACTIVATION_FUNCTION.SIGMOID_SYM, 0.6, 1);
@@ -189,16 +207,23 @@ namespace ExplOCR
 
         internal char Predict(byte[] bytes, bool margin)
         {
+            double quality;
+            return Predict(bytes, margin, out quality);
+        }
+
+        internal char Predict(byte[] bytes, bool margin, out double quality)
+        {
             int pixels = DimensionX * DimensionY;
             int samples = 1;
             int classes = netKeys.Count;
             Emgu.CV.Matrix<Single> test = new Emgu.CV.Matrix<Single>(samples, pixels);
             Emgu.CV.Matrix<Single> class_test = new Emgu.CV.Matrix<Single>(samples, classes);
             Emgu.CV.Matrix<Single> result = new Emgu.CV.Matrix<float>(1, classes);
+            float[] input = AdjustInput(bytes);
 
             for (int j = 0; j < pixels; j++)
             {
-                test[0, j] = bytes[j];
+                test[0, j] = input[j];
             }
 
             float max, max2;
@@ -224,11 +249,45 @@ namespace ExplOCR
                     max2 = result[0, j];
                 }
             }
+
+            quality = max;
+            quality = quality - Math.Max(0.25 - Math.Abs(max - max2), 0);
+            // Map the range [0.5, 1] to [0, 1]
+            quality = (quality * 1.5) - 0.5;
+            quality = Math.Max(0.0, Math.Min(quality, 1.0));
+
             if (margin && Math.Abs(max - max2) < 0.1 && max > 0.5)
                 return '*';
             if (max > 0.5) return netKeys[max_idx];
-            //if (max > 5 * max2) return netKeys[max_idx];
+            //if (max > max2+0.25) return netKeys[max_idx];
             return '*';
+        }
+
+        private float[] AdjustInput(byte[] bytes)
+        {
+            float target = 170;
+            float[] input = new float[bytes.Length];
+
+            float max = 1;
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                input[i] = bytes[i];
+                max = Math.Max(max, input[i]);
+            }
+            float factor = target / max;
+            if (factor > 1)
+            {
+                for (int i = 0; i < bytes.Length; i++)
+                {
+                    input[i] = input[i] * factor;
+                }
+            }
+            return input;
+        }
+
+        public System.Drawing.Size InputSize 
+        {
+            get { return new System.Drawing.Size(dimensionX, dimensionY); }
         }
 
         public void Dispose()
@@ -245,5 +304,6 @@ namespace ExplOCR
         readonly int dimensionX;
         readonly int dimensionY;
         string saveFile;
+        float factor = 1.5f;
     }
 }

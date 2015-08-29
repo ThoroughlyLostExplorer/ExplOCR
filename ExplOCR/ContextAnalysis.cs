@@ -45,15 +45,44 @@ namespace ExplOCR
                 return null;
             }
 
-            List<Rectangle> exclude = DetectExclusionAreas(lines, bmp.Height);
+            List<ExcludeSection> exclude = DetectExclusionAreas(lines, bmp.Height);
 
             List<TableSection> table = new List<TableSection>();
             List<TextLineSection> textLines = new List<TextLineSection>();
+            List<HeadlineSection> headlines = new List<HeadlineSection>();
             //List<Line> separator = new List<TextLineSection>();
             TextSection description = null;
 
             lines = CopyExcluded(lines, exclude);
             List<Line> lineQueue = new List<Line>(lines);
+
+            // Look for headlines.
+            for (int i = lineQueue.Count - 3; i >= 0; i--)
+            {
+                if (!IsSeparator(lineQueue[i]))
+                {
+                    continue;
+                }
+                if (IsSeparator(lineQueue[i + 1]))
+                {
+                    continue;
+                }
+                if (!IsSeparator(lineQueue[i + 2]))
+                {
+                    continue;
+                }
+                if (Math.Abs(lineQueue[i + 2].Bounds.Top - lineQueue[i + 1].Bounds.Bottom) > 3 * lineQueue[i + 1].Bounds.Height / 2)
+                {
+                    continue;
+                }
+                if (Math.Abs(lineQueue[i].Bounds.Bottom - lineQueue[i + 1].Bounds.Top) > 3 * lineQueue[i + 1].Bounds.Height / 2)
+                {
+                    continue;
+                }
+
+                headlines.Add(new HeadlineSection(lineQueue[i + 1]));
+                lineQueue.RemoveRange(i, 3);
+            }
 
             while (lineQueue.Count > 0)
             {
@@ -93,10 +122,42 @@ namespace ExplOCR
             {
                 description = ImageLetters.ImproveDescriptionLines(bmp, description);
             }
-            return new PageSections(table, description, textLines, exclude);
+            // Star catalogue IDs may form an anomalous table of only one row. This 
+            // kind of table is missed by the normal table reading algorithm.
+            if (table.Count > 0)
+            {
+                for (int i = textLines.Count - 1; i >= 0; i--)
+                {
+                    if (textLines[i].Bounds.Height < Properties.Settings.Default.TableLineMinimumHeight)
+                    {
+                        continue;
+                    }
+                    bool gapOK = true;
+                    bool gapLeft = false;
+                    bool gapRight = false;
+                    foreach (Rectangle letter in textLines[i].Line)
+                    {
+                        Rectangle r = table[0].Gap;
+                        r.Y = 0;
+                        r.Height = 1000000;
+                        if (letter.IntersectsWith(r))
+                        {
+                            gapOK = false;
+                        }
+                        if (letter.Right < table[0].Gap.Left) gapLeft = true;
+                        if (letter.Left > table[0].Gap.Right) gapRight = true;
+                    }
+                    if (gapOK && gapLeft && gapRight)
+                    {
+                        table.Add(new TableSection(new Line[] { textLines[i].Line}));
+                        textLines.RemoveAt(i);
+                    }
+                }
+            }
+            return new PageSections(table, description, textLines, exclude, headlines);
         }
 
-        private static List<Line> CopyExcluded(List<Line> lines, List<Rectangle> exclude)
+        private static List<Line> CopyExcluded(List<Line> lines, List<ExcludeSection> exclude)
         {
             if(exclude.Count == 0)
             {
@@ -106,9 +167,9 @@ namespace ExplOCR
             foreach (Line line in lines)
             {
                 bool use = true;
-                foreach (Rectangle r in exclude)
+                foreach (ExcludeSection ex in exclude)
                 {
-                    if (Rectangle.Intersect(line.Bounds, r).Height > 0)
+                    if (Rectangle.Intersect(line.Bounds, ex.Bounds).Height > 0)
                     {
                         use = false;
                         break;
@@ -122,9 +183,9 @@ namespace ExplOCR
             return reduced;
         }
 
-        private static List<Rectangle> DetectExclusionAreas(List<Line> lines, int height)
+        private static List<ExcludeSection> DetectExclusionAreas(List<Line> lines, int height)
         {
-            List<Rectangle> exclude = new List<Rectangle>();
+            List<ExcludeSection> exclude = new List<ExcludeSection>();
             Line infoline = null;
             foreach (Line line in lines)
             {
@@ -150,7 +211,7 @@ namespace ExplOCR
 
             if (infoline != null)
             {
-                exclude.Add(new Rectangle(infoline.Bounds.X, 0, infoline.Bounds.Width, infoline.Bounds.Bottom));
+                exclude.Add(new ExcludeSection(new Rectangle(infoline.Bounds.X, 0, infoline.Bounds.Width, infoline.Bounds.Bottom)));
             }
             return exclude;
         }
@@ -271,6 +332,10 @@ namespace ExplOCR
                     return false;
                 }
                 if (line.Bounds.Top - previous.Bottom > line.Bounds.Height + 5)
+                {
+                    return false;
+                }
+                if (line.Bounds.Height < Properties.Settings.Default.TableLineMinimumHeight)
                 {
                     return false;
                 }

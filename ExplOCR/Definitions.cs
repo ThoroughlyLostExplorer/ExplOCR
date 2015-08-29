@@ -69,6 +69,18 @@ namespace ExplOCR
         }
     }
 
+    public struct QualityData
+    {
+        public QualityData(double q, Rectangle f)
+        {
+            Quality = q;
+            Frame = f;
+        }
+
+        public Rectangle Frame;
+        public double Quality;
+    }
+
     public class Temporary
     {
         public static Dictionary<string, string> UnitNames = new Dictionary<string, string>
@@ -147,6 +159,7 @@ namespace ExplOCR
             "Pristine reserves",
             "Major reserves",
             "Common reserves",
+            "Low reserves",
             "Depleted reserves"
         };
 
@@ -174,9 +187,38 @@ namespace ExplOCR
 
     public class TransferItemValue
     {
+        public TransferItemValue()
+        {
+        }
+
+        public TransferItemValue(string text, double value, string unit)
+        {
+            Text = text;
+            Value = value;
+            Unit = unit;
+        }
+
+        public TransferItemValue(string text)
+        {
+            Text = text;
+            Value = double.NaN;
+            Unit = "";
+        }
+
         public string Text = "";
         public string Unit = "";
         public double Value = 0;
+    }
+
+    public class WellKnownItems
+    {
+        public const string System = "SYSTEM";
+        public const string BodyCode = "BODY";
+        public const string Description = "DESCRIPTION";
+        public const string CustomDescription = "CUSTOM_DESCRIPTION";
+        public const string CustomCategory = "CUSTOM_CATEGORY";
+        public const string ArchiveName = "ARCHIVE_NAME";
+        public const string Headline = "HEADLINE";
     }
 
     public class Bytemap

@@ -29,7 +29,7 @@ namespace ExplOCR
         internal static string ProcessLetter(Bitmap source, int screen, char c, Rectangle r)
         {
             if (c == ',') c = '#';
-            byte[] letterBytes = ImageLetters.GetLetterImage(source, r);
+            byte[] letterBytes = ImageLetters.GetLetterImage(source, r, new Size(Properties.Settings.Default.DimensionX, Properties.Settings.Default.DimensionY));
             string s = LetterInfo.WriteLetterInfoLine(c, r, screen, Convert.ToBase64String(letterBytes));
 
             string name;

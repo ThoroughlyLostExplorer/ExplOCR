@@ -10,6 +10,7 @@ namespace ExplOCR
     public class DescriptionItem
     {
         public string Name;
+        public string Short;
         public string Description;
         public string MinimalMatch;
         public bool Planet;
@@ -19,6 +20,7 @@ namespace ExplOCR
         {
             DescriptionItem item = new DescriptionItem();
             item.Name = "Test";
+            item.Short = "Test";
             item.Description = "Test";
             item.MinimalMatch = "runaway greenhouse";
             item.Planet = true;

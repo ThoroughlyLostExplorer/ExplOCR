@@ -77,6 +77,18 @@
     <Compile Include="Configuration\TableItem.cs" />
     <Compile Include="ContextAnalysis.cs" />
     <Compile Include="Definitions.cs" />
+    <Compile Include="EditAstroBody.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="EditAstroBody.Designer.cs">
+      <DependentUpon>EditAstroBody.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmCrash.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmCrash.Designer.cs">
+      <DependentUpon>FrmCrash.cs</DependentUpon>
+    </Compile>
     <Compile Include="FrmDebug.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -88,6 +100,12 @@
     </Compile>
     <Compile Include="FrmNetLogDlg.Designer.cs">
       <DependentUpon>FrmNetLogDlg.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmQuickEdit.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmQuickEdit.Designer.cs">
+      <DependentUpon>FrmQuickEdit.cs</DependentUpon>
     </Compile>
     <Compile Include="FrmSelectColumnsDlg.cs">
       <SubType>Form</SubType>
@@ -113,12 +131,22 @@
     <Compile Include="FrmUser.Designer.cs">
       <DependentUpon>FrmUser.cs</DependentUpon>
     </Compile>
+    <Compile Include="ImageDisplay.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ImageDisplay.Designer.cs">
+      <DependentUpon>ImageDisplay.cs</DependentUpon>
+    </Compile>
     <Compile Include="ImageFiles.cs" />
     <Compile Include="ImageLetters.cs" />
     <Compile Include="ImageProcessing.cs" />
     <Compile Include="LibExplOCR.cs" />
     <Compile Include="NeuralNet.cs" />
     <Compile Include="OcrReader.cs" />
+    <Compile Include="OutputConverter.cs" />
+    <Compile Include="PageSections\ExcludeSection.cs" />
+    <Compile Include="PageSections\HeadlineSection.cs" />
+    <Compile Include="PageSections\IPageSection.cs" />
     <Compile Include="PageSections\Line.cs" />
     <Compile Include="PageSections\PageSections.cs" />
     <Compile Include="PageSections\TableSection.cs" />
@@ -130,6 +158,12 @@
     <Compile Include="SimilarityMatch.cs" />
     <Compile Include="TeachLetters.cs" />
     <Compile Include="TrainingConfig.cs" />
+    <EmbeddedResource Include="EditAstroBody.resx">
+      <DependentUpon>EditAstroBody.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmCrash.resx">
+      <DependentUpon>FrmCrash.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FrmDebug.resx">
       <DependentUpon>FrmDebug.cs</DependentUpon>
     </EmbeddedResource>
@@ -139,6 +173,9 @@
     <EmbeddedResource Include="FrmNetLogDlg.resx">
       <DependentUpon>FrmNetLogDlg.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="FrmQuickEdit.resx">
+      <DependentUpon>FrmQuickEdit.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FrmSelectColumnsDlg.resx">
       <DependentUpon>FrmSelectColumnsDlg.cs</DependentUpon>
     </EmbeddedResource>
@@ -147,6 +184,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FrmUser.resx">
       <DependentUpon>FrmUser.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ImageDisplay.resx">
+      <DependentUpon>ImageDisplay.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

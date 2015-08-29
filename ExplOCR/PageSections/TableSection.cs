@@ -21,7 +21,7 @@ using System.Text;
 
 namespace ExplOCR
 {
-    class TableSection : IEnumerable<Line>
+    class TableSection : IEnumerable<Line>,  IPageSection
     {
         public TableSection(IEnumerable<Line> lines)
         {
