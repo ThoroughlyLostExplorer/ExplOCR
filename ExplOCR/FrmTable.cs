@@ -80,11 +80,17 @@ namespace ExplOCR
                 DataRowView rv = dataView[rowIndex];
                 currentRow = (int)rv.Row[HiddenIndexName];
                 editAstroBody.SetData(dataItems, currentRow);
-                string file = (string)rv.Row[WellKnownItems.ArchiveName];
-                imageDisplay.Image = new Bitmap(Path.Combine(PathHelpers.BuildScreenDirectory(), file));
-                imageDisplay.Invalidate();
-                imageDisplay.Update();
+                try
+                {
+                    string file = (string)rv.Row[WellKnownItems.ArchiveName];
+                    imageDisplay.Image = new Bitmap(Path.Combine(PathHelpers.BuildScreenDirectory(), file));
+                    imageDisplay.Invalidate();
+                    imageDisplay.Update();
+                }
+                catch
+                {
 
+                }
                 textOverview.Text = OutputConverter.GetDataText(dataItems[currentRow]);
             }
         }
@@ -389,25 +395,28 @@ namespace ExplOCR
                 Bitmap bmpStructure, bmpHeatmap;
 
                 string[] files = GetArchiveFiles(dataItems[currentRow]);
-                foreach (string file in files)
+                if (files.Length > 0)
                 {
-                    using (Bitmap bmp = new Bitmap(Path.Combine(PathHelpers.BuildScreenDirectory(), file)))
+                    foreach (string file in files)
                     {
-                        ocrReader.StitchPrevious = stitch;
-                        LibExplOCR.ProcessImage(ocrReader, bmp, out bmpStructure, out bmpHeatmap);
-                        ocrReader.StitchPrevious = false;
-                        textOverview.Text = OutputConverter.GetDataText(ocrReader.Items);
-                        if (!stitch)
+                        using (Bitmap bmp = new Bitmap(Path.Combine(PathHelpers.BuildScreenDirectory(), file)))
                         {
-                            stitch = true;
-                            imageDisplay.Image = bmpHeatmap;
-                            imageDisplay.Invalidate();
-                            imageDisplay.Update();
+                            ocrReader.StitchPrevious = stitch;
+                            LibExplOCR.ProcessImage(ocrReader, bmp, out bmpStructure, out bmpHeatmap);
+                            ocrReader.StitchPrevious = false;
+                            textOverview.Text = OutputConverter.GetDataText(ocrReader.Items);
+                            if (!stitch)
+                            {
+                                stitch = true;
+                                imageDisplay.Image = bmpHeatmap;
+                                imageDisplay.Invalidate();
+                                imageDisplay.Update();
+                            }
                         }
                     }
+                    editAstroBody.ResetControls(ocrReader.Items);
+                    editAstroBody.HasChanges = true;
                 }
-                editAstroBody.ResetControls(ocrReader.Items);
-                editAstroBody.HasChanges = true;
             }
             catch
             {
