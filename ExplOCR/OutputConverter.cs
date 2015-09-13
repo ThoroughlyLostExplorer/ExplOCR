@@ -78,6 +78,10 @@ namespace ExplOCR
                 {
                     continue;
                 }
+                if (ti.Name == WellKnownItems.ScanDate)
+                {
+                    continue;
+                }
                 output += ti.Name;
 
                 bool first = true;
@@ -142,6 +146,10 @@ namespace ExplOCR
                 if (ti.Name == "DELIMITER")
                 {
                     output += "DELIMITER" + Environment.NewLine;
+                    continue;
+                }
+                if (ti.Name == WellKnownItems.ScanDate)
+                {
                     continue;
                 }
                 output += ti.Name;

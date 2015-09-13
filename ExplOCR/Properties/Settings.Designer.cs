@@ -229,5 +229,80 @@ namespace ExplOCR.Properties {
                 this["SamplesDelimiters"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string UserSaveDirectory {
+            get {
+                return ((string)(this["UserSaveDirectory"]));
+            }
+            set {
+                this["UserSaveDirectory"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string UserScreenshotDirectory {
+            get {
+                return ((string)(this["UserScreenshotDirectory"]));
+            }
+            set {
+                this["UserScreenshotDirectory"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string ScreenshotKeyCombination {
+            get {
+                return ((string)(this["ScreenshotKeyCombination"]));
+            }
+            set {
+                this["ScreenshotKeyCombination"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool StandardKeyCombo {
+            get {
+                return ((bool)(this["StandardKeyCombo"]));
+            }
+            set {
+                this["StandardKeyCombo"] = value;
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("009c535e99cc97e6ef7cdcc8ce34c865")]
+        public string IdentityKey {
+            get {
+                return ((string)(this["IdentityKey"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("ThoroughlyLostExplorer")]
+        public string IdentityName {
+            get {
+                return ((string)(this["IdentityName"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("http://www.elitegalaxyonline.com/gravityformsapi/forms/25/submissions")]
+        public string APIServer {
+            get {
+                return ((string)(this["APIServer"]));
+            }
+        }
     }
 }

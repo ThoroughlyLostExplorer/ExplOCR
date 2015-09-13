@@ -412,6 +412,10 @@ namespace ExplOCR
             {
                 return false;
             }
+            if (name == WellKnownItems.ScanDate)
+            {
+                return false;
+            }
             foreach (TableItem ti in tableConfig)
             {
                 if (ti.Name == name) return true;

@@ -113,6 +113,7 @@ namespace ExplOCR
             {
                 output = MergeItems(currentItems, output);
             }
+            AppendMetaInformation(output);
             currentItems = output.ToArray();
         }
 
@@ -160,7 +161,15 @@ namespace ExplOCR
             {
                 output = MergeItems(currentItems, output);
             }
+            AppendMetaInformation(output);
             currentItems = output.ToArray();
+        }
+
+        private void AppendMetaInformation(List<TransferItem> output)
+        {
+            TransferItem ti = new TransferItem(WellKnownItems.ScanDate);
+            ti.Values.Add(new TransferItemValue(DateTime.UtcNow.ToString("s")));
+            output.Add(ti);
         }
 
         private TransferItem ReadHeadline(HeadlineSection hl, Bytemap imageGray, Bytemap imageBinary)
@@ -459,6 +468,11 @@ namespace ExplOCR
                 if (item.NoText)
                 {
                     tv.Text = "";
+                }
+                // Special case of '<' in age table item. Don't know how to handle this systematically yet.
+                if (item.Name == "AGE" && accumulateText.Split(new char[] { ' ' }).Length == 3)
+                {
+                    tv.Value = 0;
                 }
                 ti.Values.Add(tv);
             }

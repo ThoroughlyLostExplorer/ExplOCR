@@ -31,12 +31,26 @@ namespace ExplOCR
 
         public static bool WordsSimilar(string a, string b)
         {
+            int distance = WordDistance(a, b);
+
+            if (Math.Min(a.Length, b.Length) < Properties.Settings.Default.LongWordThreshold)
+            {
+                return distance <= 1;
+            }
+            else
+            {
+                return distance <= 2;
+            }
+        }
+
+        public static int WordDistance(string a, string b)
+        {
             int i = 0;
             int j = 0;
             int distance = 0;
 
-            a = a.Trim(ListDelimiter);
-            b = b.Trim(ListDelimiter);
+            a = ReduceEquivalents(a.Trim(ListDelimiter));
+            b = ReduceEquivalents(b.Trim(ListDelimiter));
 
             for (; i < a.Length && j < b.Length; i++, j++)
             {
@@ -78,15 +92,7 @@ namespace ExplOCR
 
             distance += Math.Max(a.Length - i, 0);
             distance += Math.Max(b.Length - j, 0);
-
-            if (Math.Min(a.Length, b.Length) < Properties.Settings.Default.LongWordThreshold)
-            {
-                return distance <= 1;
-            }
-            else
-            {
-                return distance <= 2;
-            }
+            return distance;
         }
 
         public static bool SentencesSimilar(string a, string b)
@@ -210,7 +216,18 @@ namespace ExplOCR
             return b;
         }
 
+        private static string ReduceEquivalents(string p)
+        {
+            for (int i = 0; i < EquivalenceReductionFrom.Length; i++)
+            {
+                p = p.Replace(EquivalenceReductionFrom[i], EquivalenceReductionTo[i]);
+            }
+            return p;
+        }
+
         static char[] ListSpace = new char[] { ' ' };
         static char[] ListDelimiter = new char[] { '.', ',', ':', ';' };
+        static string[] EquivalenceReductionFrom = new string[] { "II" };
+        static string[] EquivalenceReductionTo = new string[] { "H" };
     }
 }

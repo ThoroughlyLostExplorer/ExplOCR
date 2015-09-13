@@ -107,6 +107,7 @@ namespace ExplOCR
             "CARBON DIOXIDE GEYSERS",
             "WATER GEYSERS",
             "METHANE MAGMA",
+            "NITROGEN MAGMA"
         };
 
         public static string[] AtmosphereTypes = new string[] {
@@ -115,15 +116,19 @@ namespace ExplOCR
             "NITROGEN",
             "CARBON DIOXIDE",
             "SULPHUR DIOXIDE",
+            "ARGON",
             "NEON",
             "NEON-RICH",
             "ARGON-RICH",
+            "NITROGEN-RICH",
+            "WATER-RICH",
             "CARBON DIOXIDE-RICH",
             "METHANE-RICH",
             "SILICATE VAPOUR",
             "METHANE",
             "HELIUM",
             "AMMONIA",
+            "AMMONIA AND OXYGEN",
             "WATER",
         };
 
@@ -139,6 +144,7 @@ namespace ExplOCR
             "HYDROGEN",
             "HELIUM",
             "ARGON",
+            "IRON",
             "SILICATES"
         };
 
@@ -181,6 +187,32 @@ namespace ExplOCR
             Name = name;
         }
 
+        public static TransferItem FindItem(string name, TransferItem[] items)
+        {
+            foreach (TransferItem item in items)
+            {
+                if (item.Name == name) return item;
+            }
+            return null;
+        }
+
+        internal static TransferItem FindItem(string name, TransferItem[] items, int num)
+        {
+            int count = 0;
+            foreach (TransferItem item in items)
+            {
+                if (item.Name == name)
+                {
+                    count++;
+                }
+                if (count == num)
+                {
+                    return item;
+                }
+            }
+            return null;
+        }
+
         public string Name = "";
         public List<TransferItemValue> Values = new List<TransferItemValue>();
     }
@@ -219,6 +251,7 @@ namespace ExplOCR
         public const string CustomCategory = "CUSTOM_CATEGORY";
         public const string ArchiveName = "ARCHIVE_NAME";
         public const string Headline = "HEADLINE";
+        public const string ScanDate = "META_DATE";
     }
 
     public class Bytemap
