@@ -106,7 +106,7 @@
   <DescriptionItem>
     <Name>ClassGM</Name>
     <Short>Class M Giant Star</Short>
-    <Description>Red giants are in the latter part of their lives. Hydrogen has stopped fusing in their degenerate helium cores and has moved to an outer shell, causing the star to expand. The outer atmosphere is inflated and tenuous, and the surface temperature is below 5,000 K.</Description>
+    <Description>Red giant star. Red giants are in the latter part of their lives. Hydrogen has stopped fusing in their degenerate helium cores and has moved to an outer shell, causing the star to expand. The outer atmosphere is inflated and tenuous, and the surface temperature is below 5,000 K.</Description>
     <Planet>false</Planet>
     <Star>true</Star>
   </DescriptionItem>
@@ -132,9 +132,44 @@
     <Star>true</Star>
   </DescriptionItem>
   <DescriptionItem>
-    <Name>ClassS</Name>
+    <Name>ClassWN</Name>
+    <Short>Wolf-Rayet N Star</Short>
+    <Description>Wolf-Rayet class stars are massive stars that are nearing the end of their life cycle and have moved out of their hydrogen-burning phase. They were once over 20 solar masses but now shed considerable amounts of material through solar wind. Their surface temperature can reach 200,000 K, so they appear a brilliant blue. This star is a variant of the Wolf-Rayet stars whose spectrum is dominated by ionised nitrogen and helium lines.</Description>
+    <Planet>false</Planet>
+    <Star>true</Star>
+  </DescriptionItem>
+  <DescriptionItem>
+    <Name>ClassWNC</Name>
+    <Short>Wolf-Rayet NC Star</Short>
+    <Description>Wolf-Rayet class stars are massive stars that are nearing the end of their life cycle and have moved out of their hydrogen-burning phase. They were once over 20 solar masses but now shed considerable amounts of material through solar wind. Their surface temperature can reach 200,000 K, so they appear a brilliant blue. This star is a variant of the Wolf-Rayet stars whose spectrum is dominated by ionised nitrogen, carbon-oxygen and helium lines.</Description>
+    <Planet>false</Planet>
+    <Star>true</Star>
+  </DescriptionItem>
+  <DescriptionItem>
+    <Name>ClassWC</Name>
+    <Short>Wolf-Rayet C Star</Short>
+    <Description>Wolf-Rayet class stars are massive stars that are nearing the end of their life cycle and have moved out of their hydrogen-burning phase. They were once over 20 solar masses but now shed considerable amounts of material through solar wind. Their surface temperature can reach 200,000 K, so they appear a brilliant blue. This star is a variant of the Wolf-Rayet stars whose spectrum is dominated by ionised carbon lines.</Description>
+    <Planet>false</Planet>
+    <Star>true</Star>
+  </DescriptionItem>
+  <DescriptionItem>
+    <Name>ClassWO</Name>
+    <Short>Wolf-Rayet O Star</Short>
+    <Description>Wolf-Rayet class stars are massive stars that are nearing the end of their life cycle and have moved out of their hydrogen-burning phase. They were once over 20 solar masses but now shed considerable amounts of material through solar wind. Their surface temperature can reach 200,000 K, so they appear a brilliant blue. This star is a variant of the Wolf-Rayet stars whose spectrum is dominated by ionised oxygen lines.</Description>
+    <Planet>false</Planet>
+    <Star>true</Star>
+  </DescriptionItem>
+  <DescriptionItem>
+    <Name>ClassGS</Name>
     <Short>Class S Giant Star</Short>
     <Description>Class S stars are a late-type giant star (similar to class K5–M) whose spectrum displays bands from zirconium oxide, in addition to the titanium oxide bands characteristically exhibited by K and M class giant stars.</Description>
+    <Planet>false</Planet>
+    <Star>true</Star>
+  </DescriptionItem>
+  <DescriptionItem>
+    <Name>ClassS</Name>
+    <Short>Class S Star</Short>
+    <Description>S class stars are late sequence stars that were once M class stars and have begun the cycle towards becoming a carbon star, a star nearing the end of its life.</Description>
     <Planet>false</Planet>
     <Star>true</Star>
   </DescriptionItem>

@@ -32,7 +32,14 @@ namespace ExplOCR
 
         public static string BuildScreenDirectory()
         {
-            return Path.Combine(PathBase, "screenshots");
+            if (string.IsNullOrEmpty(Properties.Settings.Default.UserScreenshotDirectory))
+            {
+                return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "ExplOCR_Screenshots");
+            }
+            else
+            {
+                return Properties.Settings.Default.UserScreenshotDirectory;
+            }
         }
 
         public static string BuildKnowledgeDirectory(string type)
@@ -130,9 +137,33 @@ namespace ExplOCR
             }
         }
 
-        internal static string BuildSaveFilename()
+        internal static string BuildUserSaveFilename()
         {
-            return Path.Combine(BuildSaveDirectory(), "systems.xml");
+            return Path.Combine(BuildUserSaveDirectory(), "systems.xml");
+        }
+
+        internal static string BuildUserSaveDirectory()
+        {
+            if (string.IsNullOrEmpty(Properties.Settings.Default.UserSaveDirectory))
+            {
+                return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "ExplOCR");
+            }
+            else
+            {
+                return Properties.Settings.Default.UserSaveDirectory;
+            }
+        }
+
+        internal static void ConfigureScreenDirectory(string p)
+        {
+            Properties.Settings.Default.UserScreenshotDirectory = p;
+            Properties.Settings.Default.Save();
+        }
+
+        internal static void ConfigureUserSaveDirectory(string p)
+        {
+            Properties.Settings.Default.UserSaveDirectory = p;
+            Properties.Settings.Default.Save();
         }
     }
 }

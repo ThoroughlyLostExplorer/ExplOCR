@@ -34,6 +34,8 @@ namespace ExplOCR
             ocrReader = LibExplOCR.CreateOcrReader();
             InitializeComponent();
             previousState = WindowState;
+            keyCombo = FrmConfigureKeys.ParseKeyString(Properties.Settings.Default.ScreenshotKeyCombination);
+            standardKeys = Properties.Settings.Default.StandardKeyCombo;
         }
         
         private Bitmap MakeScreenshot()
@@ -59,7 +61,11 @@ namespace ExplOCR
             }
 
             ocrReader.StitchPrevious = checkStitch.Checked;
-            LibExplOCR.ProcessImage(ocrReader, bmp, out bmpStructure, out bmpHeatmap);
+            if (!LibExplOCR.ProcessImage(ocrReader, bmp, out bmpStructure, out bmpHeatmap))
+            {
+                imageDisplay.Image = bmpHeatmap;
+                MessageBox.Show("Sorry, can't process.");
+            }
             imageDisplay.Image = bmpHeatmap;
             ocrReader.StitchPrevious = false;
             textXML = OutputConverter.GetDataXML(ocrReader.Items);
@@ -237,6 +243,32 @@ namespace ExplOCR
             }
         }
 
+        private void miConfigSaveDirectories_Click(object sender, EventArgs e)
+        {
+            using (Form dlg = new FrmDirectoriesDlg())
+            {
+                dlg.ShowDialog();
+            }
+        }
+
+        private void miConfigureKeys_Click(object sender, EventArgs e)
+        {
+            using (FrmConfigureKeys dlg = new FrmConfigureKeys())
+            {
+                dlg.UseCustom = !Properties.Settings.Default.StandardKeyCombo;
+                dlg.KeyCombination = Properties.Settings.Default.ScreenshotKeyCombination;
+                if (dlg.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+                {
+                    return;
+                }
+                Properties.Settings.Default.StandardKeyCombo = !dlg.UseCustom;
+                Properties.Settings.Default.ScreenshotKeyCombination = dlg.KeyCombination;
+                Properties.Settings.Default.Save();
+                keyCombo = FrmConfigureKeys.ParseKeyString(Properties.Settings.Default.ScreenshotKeyCombination);
+                standardKeys = Properties.Settings.Default.StandardKeyCombo;
+            }
+        }
+
         #endregion
 
         private void buttonSave_Click(object sender, EventArgs e)
@@ -246,10 +278,32 @@ namespace ExplOCR
 
         private void buttonEdit_Click(object sender, EventArgs e)
         {
-            using (Form dlg = new FrmQuickEdit())
+
+            TransferItem[][] editBase = new TransferItem[1][] { LibExplOCR.BuildInfoArray(textXML, textSystem.Text, textBody.Text, textDescription.Text, textCategories.Text, new List<string>()) };
+            using (FrmQuickEdit dlg = new FrmQuickEdit())
             {
-                dlg.ShowDialog();
+                dlg.SetData(editBase, 0);
+                if (dlg.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+                {
+                    return;
+                }
             }
+            textSystem.Text = TransferItem.FindItem(WellKnownItems.System, editBase[0]).Values[0].Text;
+            textBody.Text = TransferItem.FindItem(WellKnownItems.BodyCode, editBase[0]).Values[0].Text;
+            textDescription.Text = TransferItem.FindItem(WellKnownItems.CustomDescription, editBase[0]).Values[0].Text;
+            textCategories.Text = TransferItem.FindItem(WellKnownItems.CustomCategory, editBase[0]).Values[0].Text;
+            List<TransferItem> tmp = new List<TransferItem>(editBase[0]);
+            tmp.Remove(TransferItem.FindItem(WellKnownItems.System, editBase[0]));
+            tmp.Remove(TransferItem.FindItem(WellKnownItems.BodyCode, editBase[0]));
+            textShort.Text = OutputConverter.GetDataText(tmp.ToArray());
+            textXML = OutputConverter.GetDataXML(editBase[0]);
+        }
+
+        private TransferItem[] DeserializeItems(string xml)
+        {
+            XmlSerializer ser = new XmlSerializer(typeof(TransferItem[]));
+            StringReader reader = new StringReader(xml);
+            return ser.Deserialize(reader) as TransferItem[];
         }
 
         private void buttonBrowse_Click(object sender, EventArgs e)
@@ -259,20 +313,40 @@ namespace ExplOCR
 
         private void timer_Tick(object sender, EventArgs e)
         {
-            if (Control.ModifierKeys != (Keys.Shift | Keys.Alt | Keys.Control))
+            if (keyCombo.Count < 2 || standardKeys)
             {
-                return;
+                if (Control.ModifierKeys != (Keys.Shift | Keys.Alt | Keys.Control))
+                {
+                    return;
+                }
+            }
+            else
+            {
+                foreach (int key in keyCombo)
+                {
+                    if (!KeyState.IsKeyDown((Keys)key))
+                    {
+                        return;
+                    }
+                }
             }
 
             using (Bitmap bmp = MakeScreenshot())
             {
                 isTrueScreenshot = true;
-                ProcessScreenshot(bmp);
-
                 WindowState = previousState;
+                Activate();
+
+                try
+                {
+                    ProcessScreenshot(bmp);
+                }
+                catch
+                {
+                }
+
                 textBody.SelectAll();
                 textBody.Focus();
-                Activate();
             }
         }
 
@@ -294,6 +368,8 @@ namespace ExplOCR
         string textXML;
         FormWindowState previousState;
         bool isTrueScreenshot = false;
+        List<int> keyCombo = new List<int>();
+        bool standardKeys = true;
 
         #endregion
 

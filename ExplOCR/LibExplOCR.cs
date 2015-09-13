@@ -59,17 +59,24 @@ namespace ExplOCR
             }
         }
 
-        public static void ProcessImage(OcrReader ocrReader, Bitmap bmp, out Bitmap displayA, out Bitmap displayB)
+        public static bool ProcessImage(OcrReader ocrReader, Bitmap bmp, out Bitmap displayA, out Bitmap displayB)
         {
             Bitmap grayscale, binary;
             bmp = bmp.Clone() as Bitmap;
             PageSections pageSections = PrepareBitmaps(bmp, out grayscale, out binary);
+            if (pageSections == null)
+            {
+                displayA = new Bitmap(binary);
+                displayB = new Bitmap(grayscale);
+                return false;
+            }
             ocrReader.ReadPage(new Bytemap(grayscale), new Bytemap(binary), pageSections);
 
             displayA = new Bitmap(binary);
             displayB = new Bitmap(grayscale);
             AnnotatePageStructure(displayA, pageSections);
             AnnotatePageHeatmap(displayB, ocrReader.QualityData);
+            return true;
         }
 
         internal static PageSections PrepareBitmaps(Bitmap bmp, out Bitmap grayscale, out Bitmap binary)
@@ -78,6 +85,11 @@ namespace ExplOCR
             PreprocessImages(bmp, out grayscale, out splittish, out glueish);
 
             PageSections pageSections = ContextAnalysis.PartitionScreen(splittish);
+            if (pageSections == null)
+            {
+                binary = splittish;
+                return null;
+            }
 
             // To prevent lower-case letters in the descriptive text area from being split in two,
             // overwrite the splittish descriptive text area with the glueish version. 
@@ -223,13 +235,8 @@ namespace ExplOCR
             }
         }
 
-        public static void SaveInfo(string xml, string system, string body, string custom, string category, List<string> archiveNames)
+        public static TransferItem[] BuildInfoArray(string xml, string system, string body, string custom, string category, List<string> archiveNames)
         {
-            if (!Directory.Exists(PathHelpers.BuildSaveDirectory()))
-            {
-                Directory.CreateDirectory(PathHelpers.BuildSaveDirectory());
-            }
-
             XmlSerializer ser = new XmlSerializer(typeof(TransferItem[]));
             StringReader reader = new StringReader(xml);
             TransferItem[] items = ser.Deserialize(reader) as TransferItem[];
@@ -283,20 +290,36 @@ namespace ExplOCR
                 }
                 info.Add(ti);
             }
-            foreach(TransferItem item in items)
+            foreach (TransferItem item in items)
             {
-                if(item.Name != "DELIMITER")
+                if (item == null)
+                {
+                    continue;
+                }
+                if (item.Name != "DELIMITER")
                 {
                     info.Add(item);
                 }
             }
-            items = info.ToArray();
+            return info.ToArray();
+        }
+
+        public static void SaveInfo(string xml, string system, string body, string custom, string category, List<string> archiveNames)
+        {
+            if (!Directory.Exists(PathHelpers.BuildUserSaveDirectory()))
+            {
+                Directory.CreateDirectory(PathHelpers.BuildUserSaveDirectory());
+            }
+
+            TransferItem[] items = BuildInfoArray(xml, system, body, custom, category, archiveNames);
+
+
 
             TransferItem[][] array;
-            ser = new XmlSerializer(typeof(TransferItem[][]));
+            XmlSerializer ser = new XmlSerializer(typeof(TransferItem[][]));
             try
             {
-                using (FileStream fs = File.OpenRead(PathHelpers.BuildSaveFilename()))
+                using (FileStream fs = File.OpenRead(PathHelpers.BuildUserSaveFilename()))
                 {
                     array = ser.Deserialize(fs) as TransferItem[][];
                 }
@@ -308,7 +331,7 @@ namespace ExplOCR
 
             List<TransferItem[]> list = new List<TransferItem[]>(array);
             list.Add(items);
-            using (FileStream fs = new FileStream(PathHelpers.BuildSaveFilename(), FileMode.Create, FileAccess.Write))
+            using (FileStream fs = new FileStream(PathHelpers.BuildUserSaveFilename(), FileMode.Create, FileAccess.Write))
             {
                 ser.Serialize(fs, list.ToArray());
             }

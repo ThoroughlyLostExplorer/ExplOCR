@@ -54,6 +54,8 @@ namespace ExplOCR
 
         private static void MainMethod(string[] args)
         {
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+
             if (args.Length == 0)
             {
                 Application.Run(new FrmUser());
@@ -76,6 +78,20 @@ namespace ExplOCR
                         File.WriteAllText(args[1], OutputConverter.GetDataText(ocrReader.Items));
                     }
                 }
+            }
+        }
+
+        private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            Exception ex = e.ExceptionObject as Exception;
+            if (ex == null)
+            {
+                ex = new Exception("Unknown Exception.");
+            }
+            using (FrmCrash form = new FrmCrash())
+            {
+                form.SetMessage(ex);
+                form.ShowDialog();
             }
         }
     }

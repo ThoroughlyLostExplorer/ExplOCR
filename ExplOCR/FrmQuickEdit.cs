@@ -32,5 +32,20 @@ namespace ExplOCR
         {
             InitializeComponent();
         }
+
+        internal void SetData(TransferItem[][] editBase, int index)
+        {
+            editAstroBody1.SetData(editBase, index);
+        }
+
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            if (DialogResult == System.Windows.Forms.DialogResult.OK)
+            {
+                editAstroBody1.SaveEditState();
+            }
+
+            base.OnFormClosed(e);
+        }
     }
 }

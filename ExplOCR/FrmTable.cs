@@ -33,6 +33,7 @@ namespace ExplOCR
         public FrmTable()
         {
             InitializeComponent();
+            buttonTEST.Visible = File.Exists(Application.ExecutablePath + ".api");
 
             dataTable.Columns.Add(HiddenIndexName, typeof(int));
             dataSet.Tables.Add(dataTable);
@@ -54,6 +55,7 @@ namespace ExplOCR
 
         private void UpdateUI()
         {
+            buttonTEST.Enabled = !editAstroBody.HasChanges;
             buttonSave.Enabled = editAstroBody.HasChanges && !checkReadOnly.Checked;
             buttonReRead.Enabled = !checkReadOnly.Checked;
             buttonCancel.Enabled = editAstroBody.HasChanges;
@@ -82,8 +84,15 @@ namespace ExplOCR
                 editAstroBody.SetData(dataItems, currentRow);
                 try
                 {
-                    string file = (string)rv.Row[WellKnownItems.ArchiveName];
-                    imageDisplay.Image = new Bitmap(Path.Combine(PathHelpers.BuildScreenDirectory(), file));
+                    if (rv.Row[WellKnownItems.ArchiveName] != DBNull.Value)
+                    {
+                        string file = (string)rv.Row[WellKnownItems.ArchiveName];
+                        imageDisplay.Image = new Bitmap(Path.Combine(PathHelpers.BuildScreenDirectory(), file));
+                    }
+                    else
+                    {
+                        imageDisplay.Image = new Bitmap(100, 100);
+                    }
                     imageDisplay.Invalidate();
                     imageDisplay.Update();
                 }
@@ -114,7 +123,7 @@ namespace ExplOCR
         {
             XmlSerializer ser = new XmlSerializer(typeof(TransferItem[][]));
 
-            using (FileStream fs = new FileStream(PathHelpers.BuildSaveFilename(), FileMode.Create, FileAccess.Write))
+            using (FileStream fs = new FileStream(PathHelpers.BuildUserSaveFilename(), FileMode.Create, FileAccess.Write))
             {
                 ser.Serialize(fs, dataItems);
             }
@@ -126,7 +135,7 @@ namespace ExplOCR
             XmlSerializer ser = new XmlSerializer(typeof(TransferItem[][]));
             try
             {
-                using (FileStream fs = File.OpenRead(PathHelpers.BuildSaveFilename()))
+                using (FileStream fs = File.OpenRead(PathHelpers.BuildUserSaveFilename()))
                 {
                     array = ser.Deserialize(fs) as TransferItem[][];
                 }
@@ -402,7 +411,11 @@ namespace ExplOCR
                         using (Bitmap bmp = new Bitmap(Path.Combine(PathHelpers.BuildScreenDirectory(), file)))
                         {
                             ocrReader.StitchPrevious = stitch;
-                            LibExplOCR.ProcessImage(ocrReader, bmp, out bmpStructure, out bmpHeatmap);
+                            if (!LibExplOCR.ProcessImage(ocrReader, bmp, out bmpStructure, out bmpHeatmap))
+                            {
+                                MessageBox.Show("Sorry, failed.");
+                                return;
+                            }
                             ocrReader.StitchPrevious = false;
                             textOverview.Text = OutputConverter.GetDataText(ocrReader.Items);
                             if (!stitch)
@@ -433,9 +446,23 @@ namespace ExplOCR
         TransferItem[][] dataItems;
         bool initialized = false;
         int currentRow = -1;
+        WebAPIClient webAPI = new WebAPIClient();
+
 
         const string HiddenIndexName = "_hiddenIndex";
 
         #endregion
+
+        public static bool ShowAPI = false;
+        private void buttonTEST_Click(object sender, EventArgs e)
+        {
+            if (currentRow < 0 || currentRow >= dataGrid.Rows.Count)
+            {
+                return;
+            }
+
+            webAPI.WebTransferItems(dataItems[currentRow]);
+
+        }
     }
 }

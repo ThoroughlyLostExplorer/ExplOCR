@@ -40,10 +40,12 @@
             this.displayToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.configToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.miConfigNetLogDir = new System.Windows.Forms.ToolStripMenuItem();
+            this.miConfigSaveDirectories = new System.Windows.Forms.ToolStripMenuItem();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.panelImageContainer = new System.Windows.Forms.Panel();
             this.imageDisplay = new ExplOCR.ImageDisplay();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.buttonBrowse = new System.Windows.Forms.Button();
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
             this.textDescription = new System.Windows.Forms.TextBox();
             this.labelCategories = new System.Windows.Forms.Label();
@@ -59,7 +61,7 @@
             this.textShort = new System.Windows.Forms.TextBox();
             this.timerTick = new System.Windows.Forms.Timer(this.components);
             this.errorProvider = new System.Windows.Forms.ErrorProvider(this.components);
-            this.buttonBrowse = new System.Windows.Forms.Button();
+            this.miConfigureKeys = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -141,7 +143,9 @@
             // configToolStripMenuItem
             // 
             this.configToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.miConfigNetLogDir});
+            this.miConfigNetLogDir,
+            this.miConfigSaveDirectories,
+            this.miConfigureKeys});
             this.configToolStripMenuItem.Name = "configToolStripMenuItem";
             this.configToolStripMenuItem.Size = new System.Drawing.Size(55, 20);
             this.configToolStripMenuItem.Text = "Config";
@@ -149,9 +153,16 @@
             // miConfigNetLogDir
             // 
             this.miConfigNetLogDir.Name = "miConfigNetLogDir";
-            this.miConfigNetLogDir.Size = new System.Drawing.Size(164, 22);
+            this.miConfigNetLogDir.Size = new System.Drawing.Size(227, 22);
             this.miConfigNetLogDir.Text = "NetLog Directory";
             this.miConfigNetLogDir.Click += new System.EventHandler(this.miConfigNetLogDir_Click);
+            // 
+            // miConfigSaveDirectories
+            // 
+            this.miConfigSaveDirectories.Name = "miConfigSaveDirectories";
+            this.miConfigSaveDirectories.Size = new System.Drawing.Size(227, 22);
+            this.miConfigSaveDirectories.Text = "Save Directories";
+            this.miConfigSaveDirectories.Click += new System.EventHandler(this.miConfigSaveDirectories_Click);
             // 
             // splitContainer1
             // 
@@ -199,9 +210,23 @@
             this.panel2.Size = new System.Drawing.Size(305, 499);
             this.panel2.TabIndex = 0;
             // 
+            // buttonBrowse
+            // 
+            this.buttonBrowse.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonBrowse.BackColor = System.Drawing.Color.DarkSeaGreen;
+            this.buttonBrowse.Location = new System.Drawing.Point(197, 453);
+            this.buttonBrowse.Name = "buttonBrowse";
+            this.buttonBrowse.Size = new System.Drawing.Size(96, 34);
+            this.buttonBrowse.TabIndex = 2;
+            this.buttonBrowse.Text = "Browse Archive";
+            this.buttonBrowse.UseVisualStyleBackColor = false;
+            this.buttonBrowse.Click += new System.EventHandler(this.buttonBrowse_Click);
+            // 
             // splitContainer2
             // 
-            this.splitContainer2.Dock = System.Windows.Forms.DockStyle.Top;
+            this.splitContainer2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.splitContainer2.Location = new System.Drawing.Point(0, 0);
             this.splitContainer2.Name = "splitContainer2";
             this.splitContainer2.Orientation = System.Windows.Forms.Orientation.Horizontal;
@@ -360,16 +385,12 @@
             // 
             this.errorProvider.ContainerControl = this;
             // 
-            // buttonBrowse
+            // miConfigureKeys
             // 
-            this.buttonBrowse.BackColor = System.Drawing.Color.DarkSeaGreen;
-            this.buttonBrowse.Location = new System.Drawing.Point(197, 453);
-            this.buttonBrowse.Name = "buttonBrowse";
-            this.buttonBrowse.Size = new System.Drawing.Size(96, 34);
-            this.buttonBrowse.TabIndex = 2;
-            this.buttonBrowse.Text = "Browse Archive";
-            this.buttonBrowse.UseVisualStyleBackColor = false;
-            this.buttonBrowse.Click += new System.EventHandler(this.buttonBrowse_Click);
+            this.miConfigureKeys.Name = "miConfigureKeys";
+            this.miConfigureKeys.Size = new System.Drawing.Size(227, 22);
+            this.miConfigureKeys.Text = "Screenshot Key Combination";
+            this.miConfigureKeys.Click += new System.EventHandler(this.miConfigureKeys_Click);
             // 
             // FrmUser
             // 
@@ -433,5 +454,7 @@
         private System.Windows.Forms.TextBox textCategories;
         private ImageDisplay imageDisplay;
         private System.Windows.Forms.Button buttonBrowse;
+        private System.Windows.Forms.ToolStripMenuItem miConfigSaveDirectories;
+        private System.Windows.Forms.ToolStripMenuItem miConfigureKeys;
     }
 }

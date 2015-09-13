@@ -36,6 +36,7 @@
             this.buttonColumns = new System.Windows.Forms.Button();
             this.splitContainer = new System.Windows.Forms.SplitContainer();
             this.panelControlContainer = new System.Windows.Forms.Panel();
+            this.buttonTEST = new System.Windows.Forms.Button();
             this.editAstroBody = new ExplOCR.EditAstroBody();
             this.buttonCancel = new System.Windows.Forms.Button();
             this.buttonReRead = new System.Windows.Forms.Button();
@@ -143,6 +144,7 @@
             // 
             // panelControlContainer
             // 
+            this.panelControlContainer.Controls.Add(this.buttonTEST);
             this.panelControlContainer.Controls.Add(this.editAstroBody);
             this.panelControlContainer.Controls.Add(this.buttonCancel);
             this.panelControlContainer.Controls.Add(this.buttonReRead);
@@ -154,6 +156,17 @@
             this.panelControlContainer.Name = "panelControlContainer";
             this.panelControlContainer.Size = new System.Drawing.Size(330, 609);
             this.panelControlContainer.TabIndex = 23;
+            // 
+            // buttonTEST
+            // 
+            this.buttonTEST.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.buttonTEST.Location = new System.Drawing.Point(85, 543);
+            this.buttonTEST.Name = "buttonTEST";
+            this.buttonTEST.Size = new System.Drawing.Size(75, 23);
+            this.buttonTEST.TabIndex = 23;
+            this.buttonTEST.Text = "API Test";
+            this.buttonTEST.UseVisualStyleBackColor = true;
+            this.buttonTEST.Click += new System.EventHandler(this.buttonTEST_Click);
             // 
             // editAstroBody
             // 
@@ -335,5 +348,6 @@
         private System.Windows.Forms.Button buttonSave;
         private System.Windows.Forms.Button buttonHide;
         private System.Windows.Forms.CheckBox checkReadOnly;
+        private System.Windows.Forms.Button buttonTEST;
     }
 }
