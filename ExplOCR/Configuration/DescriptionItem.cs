@@ -16,19 +16,6 @@ namespace ExplOCR
         public bool Planet;
         public bool Star;
 
-        public static DescriptionItem[] Test()
-        {
-            DescriptionItem item = new DescriptionItem();
-            item.Name = "Test";
-            item.Short = "Test";
-            item.Description = "Test";
-            item.MinimalMatch = "runaway greenhouse";
-            item.Planet = true;
-            item.Star = true;
-            return new DescriptionItem[] { item };
-
-        }
-
         public static DescriptionItem[] Load(string file)
         {
             XmlSerializer ser = new XmlSerializer(typeof(DescriptionItem[]));

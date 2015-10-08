@@ -33,18 +33,21 @@ namespace ExplOCR
             InitializeComponent();
         }
 
-        public void SetMessage(Exception ex)
+        public void SetMessage(Exception exception)
         {
-            if (ex == null) return;
+            if (exception == null)
+            {
+                exception = new Exception("Unknown Exception.");
+            }
 
             textBox.Text = "";
 
             do
             {
-                textBox.Text += "Exception " + ex.GetType().ToString() + Environment.NewLine +
-                   ex.Message + Environment.NewLine + ex.StackTrace + Environment.NewLine;
-                ex = ex.InnerException;
-            } while (ex != null);
+                textBox.Text += "Exception " + exception.GetType().ToString() + Environment.NewLine +
+                   exception.Message + Environment.NewLine + exception.StackTrace + Environment.NewLine;
+                exception = exception.InnerException;
+            } while (exception != null);
         }
     }
 }

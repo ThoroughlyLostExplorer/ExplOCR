@@ -98,9 +98,9 @@ namespace ExplOCR
         private void CreateRequestValues(TransferItem[] items, Dictionary<string, string> requestValues)
         {
             RequireTextValue("SYSTEM", items);
-            RequireTextValue("BODY", items);
-            RequireTextValue("CUSTOM_CATEGORY", items);
-            RequireTextValue("CUSTOM_DESCRIPTION", items);
+            RequireValueExists("BODY", items);
+            RequireValueExists("CUSTOM_CATEGORY", items);
+            RequireValueExists("CUSTOM_DESCRIPTION", items);
             requestValues[field_id["user_login"]] = Properties.Settings.Default.IdentityName;
             requestValues[field_id["user_api_key"]] = Properties.Settings.Default.IdentityKey;
             requestValues[field_id["object_name"]] = TransferItem.FindItem("BODY", items).Values[0].Text;
@@ -142,16 +142,16 @@ namespace ExplOCR
             if (volcanism)
             {
                 requestValues[field_id["volcanism_type"]] = CapitalizeWords(TransferItem.FindItem("VOLCANISM_TYPE", items).Values[0].Text);
-                if (volcanismTypes.ContainsKey(TransferItem.FindItem("VOLCANISM_TYPE", items).Values[0].Text))
+                if (!volcanismTypes.ContainsKey(TransferItem.FindItem("VOLCANISM_TYPE", items).Values[0].Text))
                 {
-                    errorString += "Volcanism type " + TransferItem.FindItem("VOLCANISM_TYPE", items).Values[0].Text + "is not valid." + Environment.NewLine;
+                    errorString += "Volcanism type " + TransferItem.FindItem("VOLCANISM_TYPE", items).Values[0].Text + " is not valid." + Environment.NewLine;
                 }
             }
 
             requestValues[field_id["is_ringed_terrestrial_planet"]] = rings ? "Yes" : "No";
             if (terraform)
             {
-                requestValues[field_id["terraform_status"]] = TransferItem.FindItem("TERRAFORMING", items).Values[0].Text;
+                requestValues[field_id["terraform_status"]] = TransferItem.FindItem("TERRAFORMING", items).Values[0].Text.TrimEnd(new char[] { '.' });
             }
             else
             {
@@ -214,15 +214,15 @@ namespace ExplOCR
             requestValues[field_id["surface_temp_star"]] = TransferItem.FindItem("SURFACE_TEMP", items).Values[0].Value.ToString();
             if (TransferItem.FindItem("ID_HIPP", items) != null)
             {
-                requestValues[field_id["star_cat_id_hipp"]] = TransferItem.FindItem("ID_HIPP", items).Values[0].Text;
+                requestValues[field_id["star_cat_id_hipp"]] = TransferItem.FindItem("ID_HIPP", items).Values[0].Value.ToString();
             }
             if (TransferItem.FindItem("ID_HD", items) != null)
             {
-                requestValues[field_id["star_cat_id_hd"]] = TransferItem.FindItem("ID_HD", items).Values[0].Text;
+                requestValues[field_id["star_cat_id_hd"]] = TransferItem.FindItem("ID_HD", items).Values[0].Value.ToString();
             }
             if (TransferItem.FindItem("ID_GLIESE", items) != null)
             {
-                requestValues[field_id["star_cat_id_gliese"]] = TransferItem.FindItem("ID_GLIESE", items).Values[0].Text;
+                requestValues[field_id["star_cat_id_gliese"]] = TransferItem.FindItem("ID_GLIESE", items).Values[0].Value.ToString();
             }
             if (multi)
             {
@@ -286,9 +286,21 @@ namespace ExplOCR
         {
             TransferItem type = TransferItem.FindItem("ATMOSPHERE_TYPE", items);
             TransferItem composition = TransferItem.FindItem("ATMOSPHERE", items);
+            TransferItem pressure = TransferItem.FindItem("SURFACE_PRESSURE", items);
+            if (pressure != null)
+            {
+                requestValues[field_id["surface_pressure"]] = pressure.Values[0].Value.ToString();
+            }
             if (type != null)
             {
-                requestValues[field_id["atmosphere_type"]] = atmosphereTypes[type.Values[0].Text];
+                if (atmosphereTypes.ContainsKey(type.Values[0].Text))
+                {
+                    requestValues[field_id["atmosphere_type"]] = atmosphereTypes[type.Values[0].Text];
+                }
+                else if (type.Values[0].Text.StartsWith("SUITABLE FOR WATER"))
+                {
+                    requestValues[field_id["atmosphere_type"]] = atmosphereTypes["SUITABLE FOR WATER BASED LIFE"];
+                }
             }
             if(composition != null)
             {
@@ -330,6 +342,11 @@ namespace ExplOCR
             requestValues[field_id["is_tidally_locked"]] = CapitalizeWords(TransferItem.FindItem("ROTATION_LOCKED", items).Values[0].Text);
         }
 
+        private bool RequireValueExists(string name, TransferItem[] items)
+        {
+            return RequireValueExists(name, items, 1);
+        }
+
         private bool RequireNumericalValue(string name, TransferItem[] items)
         {
             return RequireNumericalValue(name, items, 1);
@@ -338,6 +355,20 @@ namespace ExplOCR
         private bool RequireTextValue(string name, TransferItem[] items)
         {
             return RequireTextValue(name, items, 1);
+        }
+
+        private bool RequireValueExists(string name, TransferItem[] items, int count)
+        {
+            TransferItem ti = TransferItem.FindItem(name, items);
+            if (ti == null || ti.Values == null || ti.Values.Count == 0)
+            {
+                errorString += "Value required: " + name + Environment.NewLine;
+                return false;
+            }
+            else
+            {
+                return true;
+            }
         }
 
         private bool RequireTextValue(string name, TransferItem[] items, int count)

@@ -29,6 +29,7 @@ namespace ExplOCR
         static OutputConverter()
         {
             descriptionConfig = DescriptionItem.Load(PathHelpers.BuildConfigFilename("Descriptions"));
+            itemConfig = ItemValues.Load(PathHelpers.BuildConfigFilename("ItemValues"));
         }
 
         public static string GetDataXML(TransferItem[] array)
@@ -102,9 +103,9 @@ namespace ExplOCR
                     {
                         string format = tv.Value > 1e10 ? tv.Value.ToString("e") : tv.Value.ToString();
                         output += GetSpaces(offset) + "[" + format + "]";
-                        if (!string.IsNullOrEmpty(tv.Unit) && Temporary.UnitNames.ContainsKey(tv.Unit))
+                        if (!string.IsNullOrEmpty(tv.Unit) && itemConfig.LookupUnit(tv.Unit) != null)
                         {
-                            output += " " + Temporary.UnitNames[tv.Unit];
+                            output += " " + itemConfig.LookupUnit(tv.Unit);
                         }
                         if (!string.IsNullOrEmpty(tv.Text))
                         {
@@ -163,9 +164,9 @@ namespace ExplOCR
                     {
                         string format = tv.Value > 1e10 ? tv.Value.ToString("e") : tv.Value.ToString();
                         output += "        " + "[" + format + "]";
-                        if (!string.IsNullOrEmpty(tv.Unit) && Temporary.UnitNames.ContainsKey(tv.Unit))
+                        if (!string.IsNullOrEmpty(tv.Unit) && itemConfig.LookupUnit(tv.Unit) != null)
                         {
-                            output += " " + Temporary.UnitNames[tv.Unit];
+                            output += " " + itemConfig.LookupUnit(tv.Unit);
                         }
                         if (!string.IsNullOrEmpty(tv.Text))
                         {
@@ -198,5 +199,6 @@ namespace ExplOCR
         }
 
         static DescriptionItem[] descriptionConfig;
+        static ItemValues itemConfig;
     }
 }
