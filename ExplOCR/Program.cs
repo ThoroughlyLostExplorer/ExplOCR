@@ -42,13 +42,9 @@ namespace ExplOCR
             {
                 MainMethod(args);
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
-                using (FrmCrash form = new FrmCrash())
-                {
-                    form.SetMessage(ex);
-                    form.ShowDialog();
-                }
+                HandleException(exception);
             }
         }
 
@@ -83,14 +79,14 @@ namespace ExplOCR
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            Exception ex = e.ExceptionObject as Exception;
-            if (ex == null)
-            {
-                ex = new Exception("Unknown Exception.");
-            }
+            HandleException(e.ExceptionObject as Exception);
+        }
+
+        private static void HandleException(Exception exception)
+        {
             using (FrmCrash form = new FrmCrash())
             {
-                form.SetMessage(ex);
+                form.SetMessage(exception);
                 form.ShowDialog();
             }
         }

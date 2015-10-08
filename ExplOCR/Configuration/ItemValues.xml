@@ -1,0 +1,118 @@
+<?xml version="1.0"?>
+<ItemValues xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <VolcanismTypes>
+    <Value>NO VOLCANISM</Value>
+    <Value>IRON MAGMA</Value>
+    <Value>SILICATE MAGMA</Value>
+    <Value>WATER MAGMA</Value>
+    <Value>SILICATE VAPOUR GEYSERS</Value>
+    <Value>CARBON DIOXIDE GEYSERS</Value>
+    <Value>WATER GEYSERS</Value>
+    <Value>METHANE MAGMA</Value>
+    <Value>NITROGEN MAGMA</Value>
+  </VolcanismTypes>
+  <AtmosphereTypes>
+    <Value>NO ATMOSPHERE</Value>
+    <Value>SUITABLE FOR WATER BASED LIFE</Value>
+    <Value>NITROGEN</Value>
+    <Value>CARBON DIOXIDE</Value>
+    <Value>SULPHUR DIOXIDE</Value>
+    <Value>ARGON</Value>
+    <Value>NEON</Value>
+    <Value>NEON-RICH</Value>
+    <Value>ARGON-RICH</Value>
+    <Value>NITROGEN-RICH</Value>
+    <Value>WATER-RICH</Value>
+    <Value>CARBON DIOXIDE-RICH</Value>
+    <Value>METHANE-RICH</Value>
+    <Value>SILICATE VAPOUR</Value>
+    <Value>METHANE</Value>
+    <Value>HELIUM</Value>
+    <Value>AMMONIA</Value>
+    <Value>AMMONIA AND OXYGEN</Value>
+    <Value>WATER</Value>
+  </AtmosphereTypes>
+  <AtmosphereComponents>
+    <Value>NITROGEN</Value>
+    <Value>OXYGEN</Value>
+    <Value>WATER</Value>
+    <Value>NEON</Value>
+    <Value>CARBON DIOXIDE</Value>
+    <Value>AMMONIA</Value>
+    <Value>METHANE</Value>
+    <Value>SULPHUR DIOXIDE</Value>
+    <Value>HYDROGEN</Value>
+    <Value>HELIUM</Value>
+    <Value>ARGON</Value>
+    <Value>IRON</Value>
+    <Value>SILICATES</Value>
+  </AtmosphereComponents>
+  <SolidComponents>
+    <Value>METAL</Value>
+    <Value>ROCK</Value>
+    <Value>ICE</Value>
+  </SolidComponents>
+  <RingTypes>
+    <Value>METALLIC</Value>
+    <Value>METAL RICH</Value>
+    <Value>ROCKY</Value>
+    <Value>ICY</Value>
+  </RingTypes>
+  <MiningReserves>
+    <Value>Pristine reserves</Value>
+    <Value>Major reserves</Value>
+    <Value>Common reserves</Value>
+    <Value>Low reserves</Value>
+    <Value>Depleted reserves</Value>
+  </MiningReserves>
+  <Terraforming>
+    <Value>This planet is a candidate for terraforming.</Value>
+    <Value>This planet has been terraformed.</Value>
+  </Terraforming>
+  <UnitNames>
+    <Unit>
+      <Long>Million Years</Long>
+      <Short>MY</Short>
+    </Unit>
+    <Unit>
+      <Long>K</Long>
+      <Short>K</Short>
+    </Unit>
+    <Unit>
+      <Long />
+      <Short>UNITLESS</Short>
+    </Unit>
+    <Unit>
+      <Long>ATMOSPHERES</Long>
+      <Short>AT</Short>
+    </Unit>
+    <Unit>
+      <Long>KM</Long>
+      <Short>KM</Short>
+    </Unit>
+    <Unit>
+      <Long>%</Long>
+      <Short>PERCENT</Short>
+    </Unit>
+    <Unit>
+      <Long>D</Long>
+      <Short>DAYS</Short>
+    </Unit>
+    <Unit>
+      <Long>AU</Long>
+      <Short>AU</Short>
+    </Unit>
+    <Unit>
+      <Long>DEG</Long>
+      <Short>DEGREES</Short>
+    </Unit>
+    <Unit>
+      <Long />
+      <Short>LITERAL</Short>
+    </Unit>
+    <Unit>
+      <Long>MT</Long>
+      <Short>MT</Short>
+    </Unit>
+  </UnitNames>
+</ItemValues>

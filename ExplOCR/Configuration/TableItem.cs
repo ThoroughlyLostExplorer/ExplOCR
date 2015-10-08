@@ -21,20 +21,6 @@ namespace ExplOCR
         public int ExcludeUnit;
         public int InitialSkip;
 
-        public static TableItem[] Test()
-        {
-            TableItem item = new TableItem();
-            item.Name = "Test";
-            item.AllText = true;
-            item.NoText = false;
-            item.ExcludeUnit = 2;
-            item.Signed = true;
-            item.BeltOnly = false;
-            item.Unit = "UNITLESS";
-            return new TableItem[] { item };
-
-        }
-
         public static TableItem[] Load(string file)
         {
             XmlSerializer ser = new XmlSerializer(typeof(TableItem[]));

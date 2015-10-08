@@ -76,6 +76,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration\DescriptionItem.cs" />
+    <Compile Include="Configuration\ItemValues.cs" />
     <Compile Include="Configuration\TableItem.cs" />
     <Compile Include="ContextAnalysis.cs" />
     <Compile Include="Definitions.cs" />
@@ -254,6 +255,9 @@
     <Content Include="Configuration\Descriptions.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <SubType>Designer</SubType>
+    </Content>
+    <Content Include="Configuration\ItemValues.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Configuration\TableItems.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

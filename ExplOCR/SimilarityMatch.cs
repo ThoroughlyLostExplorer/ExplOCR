@@ -24,11 +24,6 @@ namespace ExplOCR
 {
     static class SimilarityMatch
     {
-        public static bool LettersSimilar(char a, char b)
-        {
-            return a == b;
-        }
-
         public static bool WordsSimilar(string a, string b)
         {
             int distance = WordDistance(a, b);
@@ -104,6 +99,33 @@ namespace ExplOCR
         {
             int allowed = 1 + (Math.Min(a.Length, b.Length) / Properties.Settings.Default.LongWordThreshold);
             return SentenceDistance(a,b) <= allowed;
+        }
+
+        public static int SentenceWordDistance(string a, string b)
+        {
+            return SentenceWordDistance(a.Split(ListSpace), b.Split(ListSpace));
+        }
+
+        public static int SentenceWordDistance(string[] a, string[] b)
+        {
+            int distance = 0;
+            for (int i = 0; i < Math.Max(a.Length, b.Length); i++)
+            {
+                if (i >= a.Length)
+                {
+                    distance += b[i].Length;
+                }
+                else if (i >= b.Length)
+                {
+                    distance += a[i].Length;
+                }
+                else
+                {
+                    distance += WordDistance(a[i], b[i]);
+                }
+            }
+            distance += Math.Abs(a.Length-b.Length);
+            return distance;
         }
 
         public static int SentenceDistance(string[] a, string[] b)
@@ -216,6 +238,9 @@ namespace ExplOCR
             return b;
         }
 
+        /// <summary>
+        /// An extension of "LettersSimilar" to multi-letter string that look alike.
+        /// </summary>
         private static string ReduceEquivalents(string p)
         {
             for (int i = 0; i < EquivalenceReductionFrom.Length; i++)
@@ -225,9 +250,18 @@ namespace ExplOCR
             return p;
         }
 
+        /// <summary>
+        /// Handle letters that are hard to tell apart in OCR. Currently only trivial comparison.
+        /// </summary>
+        /// <returns>True if letters are similar (currently: equal)</returns>
+        private static bool LettersSimilar(char a, char b)
+        {
+            return a == b;
+        }
+
         static char[] ListSpace = new char[] { ' ' };
         static char[] ListDelimiter = new char[] { '.', ',', ':', ';' };
-        static string[] EquivalenceReductionFrom = new string[] { "II" };
-        static string[] EquivalenceReductionTo = new string[] { "H" };
+        static string[] EquivalenceReductionFrom = new string[] { "II" };//, "AX", "TY" };
+        static string[] EquivalenceReductionTo = new string[] { "H", }; //"W", "W" };
     }
 }

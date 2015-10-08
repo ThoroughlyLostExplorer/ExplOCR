@@ -138,7 +138,7 @@
   </TableItem>
   <TableItem>
     <Name>ROTATION_TILT</Name>
-    <Description>AXIAL_TILT:</Description>
+    <Description>AXIAL TILT:</Description>
     <MinimalMatch>AXIAL</MinimalMatch>
     <AllText>false</AllText>
     <NoText>true</NoText>

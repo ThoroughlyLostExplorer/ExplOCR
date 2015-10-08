@@ -38,6 +38,7 @@ namespace ExplOCR
 
             tableConfig = TableItem.Load(PathHelpers.BuildConfigFilename("TableItems"));
             descriptionConfig = DescriptionItem.Load(PathHelpers.BuildConfigFilename("Descriptions"));
+            itemConfig = ItemValues.Load(PathHelpers.BuildConfigFilename("ItemValues"));
 
             wordList = File.ReadAllLines(PathHelpers.BuildWordFilename("words"));
 
@@ -339,12 +340,12 @@ namespace ExplOCR
         {
             TransferItem ti = new TransferItem("TERRAFORMING");
 
-            for (int i = 0; i < Temporary.Terraforming.Length; i++)
+            for (int i = 0; i < itemConfig.Terraforming.Length; i++)
             {
-                if (SimilarityMatch.WordsSimilar(terraforming, Temporary.Terraforming[i]))
+                if (SimilarityMatch.WordsSimilar(terraforming, itemConfig.Terraforming[i]))
                 {
                     TransferItemValue tv = new TransferItemValue();
-                    tv.Text = Temporary.Terraforming[i];
+                    tv.Text = itemConfig.Terraforming[i];
                     tv.Value = float.NaN;
                     ti.Values.Add(tv);
                     return ti;
@@ -355,7 +356,7 @@ namespace ExplOCR
             if (SimilarityMatch.WordsSimilar(tf[tf.Length - 1], "terraforming"))
             {
                 TransferItemValue tv = new TransferItemValue();
-                tv.Text = Temporary.Terraforming[0];
+                tv.Text = itemConfig.Terraforming[0];
                 tv.Value = float.NaN;
                 ti.Values.Add(tv);
                 return ti;
@@ -363,7 +364,7 @@ namespace ExplOCR
             if (SimilarityMatch.WordsSimilar(tf[tf.Length - 1], "terraformed"))
             {
                 TransferItemValue tv = new TransferItemValue();
-                tv.Text = Temporary.Terraforming[0];
+                tv.Text = itemConfig.Terraforming[0];
                 tv.Value = float.NaN;
                 ti.Values.Add(tv);
                 return ti;
@@ -375,12 +376,12 @@ namespace ExplOCR
         {
             TransferItem ti = new TransferItem("MINING_RESERVES");
 
-            for (int i = 0; i < Temporary.MiningReserves.Length; i++)
+            for (int i = 0; i < itemConfig.MiningReserves.Length; i++)
             {
-                if (SimilarityMatch.WordsSimilar(mining, Temporary.MiningReserves[i]))
+                if (SimilarityMatch.WordsSimilar(mining, itemConfig.MiningReserves[i]))
                 {
                     TransferItemValue tv = new TransferItemValue();
-                    tv.Text = Temporary.MiningReserves[i];
+                    tv.Text = itemConfig.MiningReserves[i];
                     tv.Value = float.NaN;
                     ti.Values.Add(tv);                 
                     return ti;
@@ -815,6 +816,22 @@ namespace ExplOCR
                     return item;
                 }
             }
+
+            int bestDistance = int.MaxValue;
+            int bestItem = -1;
+            for (int i=0; i < tableConfig.Length; i++)
+            {
+                int distance = SimilarityMatch.SentenceWordDistance(leftText, tableConfig[i].Description);
+                if (distance < bestDistance)
+                {
+                    bestItem = i;
+                    bestDistance = distance;
+                }
+            }
+            if (bestItem >= 0)
+            {
+                return tableConfig[bestItem];
+            }
             return null;
         }
 
@@ -845,18 +862,18 @@ namespace ExplOCR
                 if (ti == null) continue;
                 if (ti.Name == "VOLCANISM_TYPE")
                 {
-                    if (!(new List<string>(Temporary.VolcanismTypes)).Contains(ti.Values[0].Text.Trim()))
+                    if (!itemConfig.VolcanismTypes.Contains<string>(ti.Values[0].Text.Trim()))
                     {
-                        ti.Name = ti.Name.ToUpper();
+                        ti.Values[0].Text = ForceItemList(ti.Values[0].Text.Trim(), itemConfig.VolcanismTypes);
                     }
                 }
                 if (ti.Name == "ATMOSPHERE_TYPE")
                 {
                     ti.Values[0].Text = ti.Values[0].Text.Trim();
                     if (ti.Values[0].Text.StartsWith("NO ")) ti.Values[0].Text = "NO ATMOSPHERE";
-                    if (!(new List<string>(Temporary.AtmosphereTypes)).Contains(ti.Values[0].Text.Trim()))
+                    if (!itemConfig.AtmosphereTypes.Contains<string>(ti.Values[0].Text.Trim()))
                     {
-                        ti.Name = ti.Name.ToUpper();
+                        ti.Values[0].Text = ForceItemList(ti.Values[0].Text.Trim(), itemConfig.AtmosphereTypes);
                     }
                 }
                 if (ti.Name == "ATMOSPHERE")
@@ -865,9 +882,9 @@ namespace ExplOCR
                     {
                         v.Text = v.Text.Trim();
                         if (v.Text.StartsWith("NO ")) v.Text = v.Text.Substring(3);
-                        if (!(new List<string>(Temporary.AtmosphereComponents)).Contains(v.Text.Trim()))
+                        if (!itemConfig.AtmosphereComponents.Contains<string>(v.Text.Trim()))
                         {
-                            ti.Name = ti.Name.ToUpper();
+                            v.Text = ForceItemList(v.Text.Trim(), itemConfig.AtmosphereComponents);
                         }
                     }
                 }
@@ -879,9 +896,9 @@ namespace ExplOCR
                         v.Text = v.Text.Trim();
                         if (v.Text.StartsWith("NO ")) v.Text = v.Text.Substring(3);
                         if (v.Text.StartsWith("ROC")) v.Text = "ROCK";
-                        if (!(new List<string>(Temporary.SolidComponents)).Contains(v.Text.Trim()))
+                        if (!itemConfig.SolidComponents.Contains<string>(v.Text.Trim()))
                         {
-                            ti.Name = ti.Name.ToUpper();
+                            v.Text = ForceItemList(v.Text.Trim(), itemConfig.SolidComponents);
                         }
                         sum += v.Value;
                     }
@@ -895,12 +912,33 @@ namespace ExplOCR
                     if (ti.Values[0].Text.StartsWith("ROC")) ti.Values[0].Text = "ROCKY";
                     if (ti.Values[0].Text == "ICE") ti.Values[0].Text = "ICY";
                     ti.Values[0].Text = ti.Values[0].Text.Trim();
-                    if (!(new List<string>(Temporary.RingTypes)).Contains(ti.Values[0].Text.Trim()))
+                    if (!itemConfig.RingTypes.Contains<string>(ti.Values[0].Text.Trim()))
                     {
-                        ti.Name = ti.Name.ToUpper();
+                        ti.Values[0].Text = ForceItemList(ti.Values[0].Text.Trim(), itemConfig.RingTypes);
                     }
                 }
             }
+        }
+
+        private string ForceItemList(string item, string[] list)
+        {
+            item = item.Trim();
+            int bestDistance = int.MaxValue;
+            int bestItem = -1;
+            for (int i = 0; i < list.Length; i++)
+            {
+                int distance = SimilarityMatch.SentenceWordDistance(item, list[i]);
+                if (distance < bestDistance)
+                {
+                    bestItem = i;
+                    bestDistance = distance;
+                }
+            }
+            if (bestItem >= 0)
+            {
+                return list[bestItem];
+            }
+            return item;            
         }
 
         private List<TransferItem> MergeItems(IEnumerable<TransferItem> previousItems, IEnumerable<TransferItem> newItems)
@@ -1012,6 +1050,7 @@ namespace ExplOCR
 
         TableItem[] tableConfig;
         DescriptionItem[] descriptionConfig;
+        ItemValues itemConfig;
         NeuralNet nnDescriptions;
         NeuralNet nnNumbers;
         NeuralNet nnHeadlines;
