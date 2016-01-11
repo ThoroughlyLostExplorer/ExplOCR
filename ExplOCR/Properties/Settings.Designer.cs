@@ -280,7 +280,7 @@ namespace ExplOCR.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("009c535e99cc97e6ef7cdcc8ce34c865")]
+        [global::System.Configuration.DefaultSettingValueAttribute("b040d9d28633f7e5ee219c7c0e84885c")]
         public string IdentityKey {
             get {
                 return ((string)(this["IdentityKey"]));

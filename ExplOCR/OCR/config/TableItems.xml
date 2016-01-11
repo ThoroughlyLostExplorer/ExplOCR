@@ -64,6 +64,15 @@
     <Unit>KM</Unit>
   </TableItem>
   <TableItem>
+    <Name>GRAVITY</Name>
+    <Description>GRAVITY</Description>
+    <AllText>false</AllText>
+    <NoText>true</NoText>
+    <Signed>false</Signed>
+    <ExcludeUnit>1</ExcludeUnit>
+    <Unit>G</Unit>
+  </TableItem>
+  <TableItem>
     <Name>ATMOSPHERE</Name>
     <Description>ATMOSPHERE</Description>
     <AllText>false</AllText>
@@ -138,8 +147,8 @@
   </TableItem>
   <TableItem>
     <Name>ROTATION_TILT</Name>
-    <Description>AXIAL_TILT:</Description>
-    <MinimalMatch>AXIAL</MinimalMatch>
+    <Description>AXIAL TILT:</Description>
+    <MinimalMatch>TILT</MinimalMatch>
     <AllText>false</AllText>
     <NoText>true</NoText>
     <Signed>true</Signed>

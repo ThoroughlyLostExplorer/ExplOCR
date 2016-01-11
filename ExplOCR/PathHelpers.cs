@@ -64,7 +64,7 @@ namespace ExplOCR
 
         public static string BuildAutoTestDirectory()
         {
-            return Path.Combine(PathBase, "autotest");
+            return Path.Combine(PathBase, "autotest\\screenshots");
         }
 
         public static string BuildConfigFilename(string name)

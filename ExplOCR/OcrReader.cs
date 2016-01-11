@@ -55,7 +55,7 @@ namespace ExplOCR
             wordListDescription = tmp.ToArray();
         }
 
-        internal void ReadPage(Bytemap imageGray, Bytemap imageBinary, PageSections sections)
+        internal void ReadPage(Bytemap imageGray, Bytemap imageBinary, Bytemap imageBinarySplit, PageSections sections)
         {
             int descriptionLimit = -1;
             qualityData.Clear();
@@ -90,7 +90,7 @@ namespace ExplOCR
                     {
                         continue;
                     }
-                    output.AddRange(ReadTableSection(section as TableSection, sections, imageGray, imageBinary));
+                    output.AddRange(ReadTableSection(section as TableSection, sections, imageGray, imageBinary, imageBinarySplit));
                 }
                 if (section is TextLineSection)
                 {
@@ -118,7 +118,7 @@ namespace ExplOCR
             currentItems = output.ToArray();
         }
 
-        internal void ReadPageClassic(Bytemap imageGray, Bytemap imageBinary, PageSections sections)
+        internal void ReadPageClassic(Bytemap imageGray, Bytemap imageBinary, Bytemap imageBinarySplit, PageSections sections)
         {
             qualityData.Clear();
             List<TransferItem> output = new List<TransferItem>();
@@ -138,7 +138,7 @@ namespace ExplOCR
 
             foreach (TableSection table in sections.Tables)
             {
-                output.AddRange(ReadTableSection(table, sections, imageGray, imageBinary));
+                output.AddRange(ReadTableSection(table, sections, imageGray, imageBinary, imageBinarySplit));
             }
 
             foreach (TextLineSection tsl in sections.TextLines)
@@ -196,7 +196,7 @@ namespace ExplOCR
             return ti;
         }
 
-        private IEnumerable<TransferItem> ReadTableSection(TableSection table, PageSections sections, Bytemap imageGray, Bytemap imageBinary)
+        private IEnumerable<TransferItem> ReadTableSection(TableSection table, PageSections sections, Bytemap imageGray, Bytemap imageBinary, Bytemap imageBinarySplit)
         {
             List<TransferItem> tis = new List<TransferItem>();
             // TODO: For now, do not allow table items that are above the
@@ -216,7 +216,7 @@ namespace ExplOCR
                 List<Line> left;
                 List<Line> right;
                 GetTableItem(table, i, out left, out right);
-                tis.Add(ReadTableItem(imageGray, imageBinary, left, right));
+                tis.Add(ReadTableItem(imageGray, imageBinary, imageBinarySplit, left, right));
                 i += (left.Count - 1);
             }
             return tis;
@@ -248,12 +248,17 @@ namespace ExplOCR
 
         private TransferItem ReadMiningReservesLine(TextLineSection tsl, PageSections sections, Bytemap imageGray, Bytemap imageBinary)
         {
-            // Mining reserves are stated between first table and a headline.
+            bool afterTable = false;
+            bool afterDescription = false;
+            // Mining reserves are stated between first table and a headline OR immediately after the description..
             if (sections.Tables.Count < 1) return null;
-            if (tsl.Line.Bounds.Top <= sections.Tables[0].Bounds.Bottom) return null;
+            afterTable = tsl.Line.Bounds.Top > sections.Tables[0].Bounds.Bottom;
+            afterDescription = tsl.Line.Bounds.Bottom < sections.Tables[0].Bounds.Top
+                && tsl.Line.Bounds.Bottom > sections.Tables[0].Bounds.Top - 50;
+            if (!afterTable && !afterDescription) return null;
             int index = sections.AllSections.IndexOf(tsl);
             if (index < 0 || index + 1 >= sections.AllSections.Count) return null;
-            if (!(sections.AllSections[index + 1] is HeadlineSection)) return null;
+            if (!afterDescription && !(sections.AllSections[index + 1] is HeadlineSection)) return null;
 
             string mining = "";
             List<Rectangle> rs = new List<Rectangle>(tsl.Line);
@@ -376,6 +381,8 @@ namespace ExplOCR
         {
             TransferItem ti = new TransferItem("MINING_RESERVES");
 
+            mining = mining.Replace("y", "j");
+            mining = mining.Replace("reseaes", "reserves");
             for (int i = 0; i < itemConfig.MiningReserves.Length; i++)
             {
                 if (SimilarityMatch.WordsSimilar(mining, itemConfig.MiningReserves[i]))
@@ -390,7 +397,7 @@ namespace ExplOCR
             return null;
         }
 
-        private TransferItem ReadTableItem(Bytemap imageGray, Bytemap imageBinary, List<Line> left, List<Line> right)
+        private TransferItem ReadTableItem(Bytemap imageGray, Bytemap imageBinary, Bytemap imageBinarySplit, List<Line> left, List<Line> right)
         {
             List<Rectangle> allLeft = new List<Rectangle>();
             foreach (Line line in left)
@@ -441,7 +448,15 @@ namespace ExplOCR
                     // Test if in range for numerical or for text portion.
                     if (j < numberLength)
                     {
-                        accumulateNumber += PredictAsNumber(imageGray, imageBinary, rightLine[j]);
+                        if (j == 0 && rightLine[j].Width > 10)
+                        {
+                            // Extra splittish to get any "-" separated from the digit.
+                            accumulateNumber += PredictAsNumber(imageGray, imageBinarySplit, rightLine[j]);
+                        }
+                        else
+                        {
+                            accumulateNumber += PredictAsNumber(imageGray, imageBinary, rightLine[j]);
+                        }
                     }
                     else
                     {
@@ -537,7 +552,7 @@ namespace ExplOCR
             {
                 return true;
             }
-            if (frame.Height <= 10 && frame.Width <= 5)
+            if (frame.Height <= 9 && frame.Width <= 5)
             {
                 return true;
             }
@@ -723,6 +738,20 @@ namespace ExplOCR
                     break;
                 }
             }
+            if (item.Percentage && numberLength == rightLine.Count)
+            {
+                // Percentage values use "short" value because the space separating the 
+                // component name is sometimes not visible.
+                // TODO: Find a way to remove the '%', this would create enough space.
+                for (numberLength = rightLine.Count - 1; numberLength >= 0; numberLength--)
+                {
+                    if (ImageLetters.IsNewWord(rightLine, numberLength, true))
+                    {
+                        break;
+                    }
+                }
+            }
+
             if (item.AllText)
             {
                 numberLength = 0;
@@ -843,7 +872,7 @@ namespace ExplOCR
                 if (output[i].Name == "ROTATION_PERIOD" && output[i].Values.Count > 0)
                 {
                     string locked = "NO";
-                    if (SimilarityMatch.SentencesSimilar(output[i].Values[0].Text, "TIDALLY LOCKED"))
+                    if (SimilarityMatch.HasSimilarWord(output[i].Values[0].Text, "LOCKED"))
                     {
                         locked = "YES";
                     }

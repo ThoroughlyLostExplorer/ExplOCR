@@ -10,6 +10,7 @@
     <Value>WATER GEYSERS</Value>
     <Value>METHANE MAGMA</Value>
     <Value>NITROGEN MAGMA</Value>
+    <Value>AMMONIA MAGMA</Value>
   </VolcanismTypes>
   <AtmosphereTypes>
     <Value>NO ATMOSPHERE</Value>
@@ -66,8 +67,8 @@
     <Value>Depleted reserves</Value>
   </MiningReserves>
   <Terraforming>
-    <Value>This planet is a candidate for terraforming.</Value>
-    <Value>This planet has been terraformed.</Value>
+    <Value>This body is a candidate for terraforming.</Value>
+    <Value>This world has been terraformed.</Value>
   </Terraforming>
   <UnitNames>
     <Unit>

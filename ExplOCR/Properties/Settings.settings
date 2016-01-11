@@ -78,7 +78,7 @@
       <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="IdentityKey" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">009c535e99cc97e6ef7cdcc8ce34c865</Value>
+      <Value Profile="(Default)">b040d9d28633f7e5ee219c7c0e84885c</Value>
     </Setting>
     <Setting Name="IdentityName" Type="System.String" Scope="Application">
       <Value Profile="(Default)">ThoroughlyLostExplorer</Value>

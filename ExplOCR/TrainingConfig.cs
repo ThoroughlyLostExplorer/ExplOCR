@@ -35,7 +35,7 @@ namespace ExplOCR
 
             List<string> knowledge = new List<string>();
             List<char> netKeys = new List<char>();
-            string files = "abcdefghiklmnopqrstuvwy";
+            string files = "abcdefghijklmnopqrstuvwy";
             for (int i = 0; i < files.Length; i++)
             {
                 knowledge.Add(PathHelpers.BuildKnowledgeFilename(DescriptionsNetwork, files[i].ToString() + "_lower"));
@@ -72,11 +72,11 @@ namespace ExplOCR
             knowledge.Clear();
             netKeys.Clear();
 
-            knowledge.Add(PathHelpers.BuildKnowledgeFilename(NumbersNetwork, "comma"));
+            knowledge.Add(PathHelpers.BuildKnowledgeFilename(DelimitersNetwork, "comma"));
             netKeys.Add('#');
-            knowledge.Add(PathHelpers.BuildKnowledgeFilename(NumbersNetwork, "dot"));
+            knowledge.Add(PathHelpers.BuildKnowledgeFilename(DelimitersNetwork, "dot"));
             netKeys.Add('.');
-            knowledge.Add(PathHelpers.BuildKnowledgeFilename(NumbersNetwork, "minus"));
+            knowledge.Add(PathHelpers.BuildKnowledgeFilename(DelimitersNetwork, "minus"));
             netKeys.Add('-');
             nnDelimiters = new NeuralNet(dimensionX, dimensionY, netKeys, knowledge);
             nnDelimiters.SaveFile = PathHelpers.BuildNetworkFilename(DelimitersNetwork);
