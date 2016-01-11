@@ -122,7 +122,7 @@ namespace ExplOCR
             if (doRead)
             {
                 ocrReader.RawMode = checkRaw.Checked;
-                ocrReader.ReadPage(new Bytemap(baseBmp), new Bytemap(drawBmpRaw), pageSections);
+                ocrReader.ReadPage(new Bytemap(baseBmp), new Bytemap(drawBmpRaw), new Bytemap(drawBmpRawSplit), pageSections);
                 textAll.Text = OutputConverter.GetDataText(ocrReader.Items);
             }
         }
@@ -155,7 +155,7 @@ namespace ExplOCR
                 if (doRead)
                 {
                     ocrReader.RawMode = checkRaw.Checked;
-                    ocrReader.ReadPage(new Bytemap(baseBmp), new Bytemap(drawBmpRaw), pageSections);
+                    ocrReader.ReadPage(new Bytemap(baseBmp), new Bytemap(drawBmpRaw), new Bytemap(drawBmpRawSplit), pageSections);
                     textAll.Text = OutputConverter.GetDataText(ocrReader.Items);
                 }
                 Activate();
@@ -325,10 +325,11 @@ namespace ExplOCR
         {
             DisposeOldImages();
 
-            Bitmap binary;
-            pageSections = LibExplOCR.PrepareBitmaps(bmp, out baseBmp, out binary);
+            Bitmap binary, binarySplit;
+            pageSections = LibExplOCR.PrepareBitmaps(bmp, out baseBmp, out binary, out binarySplit);
 
             drawBmpRaw = new Bitmap(binary);
+            drawBmpRawSplit = new Bitmap(binarySplit);
             drawBmp = new Bitmap(binary);
             LibExplOCR.AnnotatePageStructure(drawBmp, pageSections);
 
@@ -542,7 +543,7 @@ namespace ExplOCR
             PrepareBitmaps();
             RedrawAll();
             ocrReader.RawMode = checkRaw.Checked;
-            ocrReader.ReadPage(new Bytemap(baseBmp), new Bytemap(drawBmpRaw), pageSections);
+            ocrReader.ReadPage(new Bytemap(baseBmp), new Bytemap(drawBmpRaw),  new Bytemap(drawBmpRawSplit), pageSections);
             textAll.Text = OutputConverter.GetDataTextClassic(ocrReader.Items);
         }
 
@@ -568,6 +569,7 @@ namespace ExplOCR
         Bitmap baseBmp;
         Bitmap drawBmp;
         Bitmap drawBmpRaw;
+        Bitmap drawBmpRawSplit;
         Rectangle selected = new Rectangle();
         byte[] selectedBytes;
         List<Rectangle> selectedLetters = new List<Rectangle>();

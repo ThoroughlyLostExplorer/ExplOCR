@@ -258,6 +258,7 @@
     </Content>
     <Content Include="Configuration\ItemValues.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
     </Content>
     <Content Include="Configuration\TableItems.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

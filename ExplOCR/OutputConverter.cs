@@ -56,6 +56,13 @@ namespace ExplOCR
                 {
                     value += headlineParts[i] + " ";
                 }
+                for (int i = 0; i+1 < value.Length; i++)
+                {
+                    if (char.IsLetter(value[i]) && char.IsLetter(value[i + 1]))
+                    {
+                        value = value.Substring(0, i + 1) + " " + value.Substring(i + 1);
+                    }
+                }
                 return value.Trim();
             }
             return "";

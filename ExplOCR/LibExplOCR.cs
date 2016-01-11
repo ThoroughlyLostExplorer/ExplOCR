@@ -39,9 +39,12 @@ namespace ExplOCR
         {
             using (Bitmap bmp = ImageFiles.LoadImageFile(file))
             {
-                Bitmap grayscale, binary;
-                PageSections pageSections = PrepareBitmaps(bmp, out grayscale, out binary);
-                ocrReader.ReadPage(new Bytemap(grayscale), new Bytemap(binary), pageSections);
+                Bitmap grayscale, binary, binarySplit;
+                PageSections pageSections = PrepareBitmaps(bmp, out grayscale, out binary, out binarySplit);
+                ocrReader.ReadPage(new Bytemap(grayscale), new Bytemap(binary), new Bytemap(binarySplit), pageSections);
+                grayscale.Dispose();
+                binary.Dispose();
+                binarySplit.Dispose();
             }
         }
 
@@ -49,8 +52,8 @@ namespace ExplOCR
         {
             using (Bitmap bmp = ImageFiles.LoadImageFile(file))
             {
-                Bitmap grayscale, binary;
-                PageSections pageSections = PrepareBitmaps(bmp, out grayscale, out binary);
+                Bitmap grayscale, binary, binarySplit;
+                PageSections pageSections = PrepareBitmaps(bmp, out grayscale, out binary, out binarySplit);
 
                 displayA = new Bitmap(binary);
                 displayB = new Bitmap(grayscale);
@@ -61,16 +64,16 @@ namespace ExplOCR
 
         public static bool ProcessImage(OcrReader ocrReader, Bitmap bmp, out Bitmap displayA, out Bitmap displayB)
         {
-            Bitmap grayscale, binary;
+            Bitmap grayscale, binary, binarySplit;
             bmp = bmp.Clone() as Bitmap;
-            PageSections pageSections = PrepareBitmaps(bmp, out grayscale, out binary);
+            PageSections pageSections = PrepareBitmaps(bmp, out grayscale, out binary, out binarySplit);
             if (pageSections == null)
             {
                 displayA = new Bitmap(binary);
                 displayB = new Bitmap(grayscale);
                 return false;
             }
-            ocrReader.ReadPage(new Bytemap(grayscale), new Bytemap(binary), pageSections);
+            ocrReader.ReadPage(new Bytemap(grayscale), new Bytemap(binary), new Bytemap(binarySplit), pageSections);
 
             displayA = new Bitmap(binary);
             displayB = new Bitmap(grayscale);
@@ -79,15 +82,16 @@ namespace ExplOCR
             return true;
         }
 
-        internal static PageSections PrepareBitmaps(Bitmap bmp, out Bitmap grayscale, out Bitmap binary)
+        internal static PageSections PrepareBitmaps(Bitmap bmp, out Bitmap grayscale, out Bitmap binary, out Bitmap binarySplit)
         {
-            Bitmap splittish, glueish;
-            PreprocessImages(bmp, out grayscale, out splittish, out glueish);
+            Bitmap splittish, extraSplittish, glueish;
+            PreprocessImages(bmp, out grayscale, out splittish, out extraSplittish, out glueish);
 
             PageSections pageSections = ContextAnalysis.PartitionScreen(splittish);
             if (pageSections == null)
             {
                 binary = splittish;
+                binarySplit = extraSplittish;
                 return null;
             }
 
@@ -113,18 +117,21 @@ namespace ExplOCR
             pageSections = ContextAnalysis.PartitionScreen(splittish);
             glueish.Dispose();
             binary = splittish;
+            binarySplit = extraSplittish;
             return pageSections;
         }
 
-        private static void PreprocessImages(Bitmap bmp, out Bitmap raw, out Bitmap splittish, out Bitmap glueish)
+        private static void PreprocessImages(Bitmap bmp, out Bitmap raw, out Bitmap splittish, out Bitmap extraSplittish, out Bitmap glueish)
         {
             raw = new Bitmap(bmp);
             ImageProcessing.GrayscaleImage(raw);
 
             ImageProcessing.HighPassImage(bmp, 3, 5);
             splittish = new Bitmap(bmp);
+            extraSplittish = new Bitmap(bmp);
             glueish = new Bitmap(bmp);
-            ImageProcessing.BinarizeImage(splittish, 1.1);
+            ImageProcessing.BinarizeImage(splittish, 1.2);
+            ImageProcessing.BinarizeImage(extraSplittish, 1.5);
             ImageProcessing.BinarizeImage(glueish, 0.8);
         }
 
@@ -216,6 +223,7 @@ namespace ExplOCR
                     using (Pen p = new Pen(c, 2))
                     {
                         g.DrawLine(p, qd.Frame.Left, qd.Frame.Bottom, qd.Frame.Right, qd.Frame.Bottom);
+                        g.DrawLine(p, qd.Frame.Right, qd.Frame.Bottom, qd.Frame.Right, qd.Frame.Bottom-5);
                     }
                 }
             }
