@@ -145,15 +145,6 @@ namespace ExplOCR.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute(".\\OCR")]
-        public string PathBase {
-            get {
-                return ((string)(this["PathBase"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("5")]
         public int WordDistanceXLarge {
             get {
@@ -302,6 +293,15 @@ namespace ExplOCR.Properties {
         public string APIServer {
             get {
                 return ((string)(this["APIServer"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute(".\\OCR")]
+        public string PathBase {
+            get {
+                return ((string)(this["PathBase"]));
             }
         }
     }

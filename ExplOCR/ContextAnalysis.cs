@@ -325,6 +325,7 @@ namespace ExplOCR
             if (section.Count < 2) return false;
 
             Rectangle previous = section[0].Bounds;
+            int previousAvg = -1;
             foreach (Line line in section)
             {
                 if (IsSeparator(line))
@@ -335,11 +336,28 @@ namespace ExplOCR
                 {
                     return false;
                 }
+                if (previousAvg > 0 && line.Bounds.Top - previousAvg > line.Bounds.Height + 5)
+                {
+                    return false;
+                }
                 if (line.Bounds.Height < Properties.Settings.Default.TableLineMinimumHeight)
                 {
                     return false;
                 }
                 previous = line.Bounds;
+                previousAvg = 0;
+                for (int i = 0; i < line.Count; i++)
+                {
+                    previousAvg += line[i].Bottom;
+                }
+                if (line.Count > 0)
+                {
+                    previousAvg = previousAvg / line.Count;
+                }
+                else
+                {
+                    previousAvg = -1;
+                }
             }
 
             TableSection t = new TableSection(section);

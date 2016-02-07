@@ -532,5 +532,41 @@ namespace ExplOCR
             }
             return dest;
         }
+
+        internal static PageSections RefinePartition(PageSections pageSections, Bitmap binary)
+        {
+            Bytemap imageBinary = new Bytemap(binary);
+            List<Line> descriptionLines = new List<Line>();
+            if (pageSections.DescriptiveText == null)
+            {
+                return pageSections;
+            }
+            foreach (Line line in pageSections.DescriptiveText)
+            {
+                List<Rectangle> accumulate = new List<Rectangle>();
+                foreach (Rectangle letter in line)
+                {
+                    Bytemap letterMask = ImageLetters.CopyRectangle(imageBinary, letter);
+                    accumulate.AddRange(ImageLetters.CleanupKerning(letterMask, false));
+                }
+                descriptionLines.Add(new Line(line.Bounds, accumulate));
+            }
+            TextSection descriptiveText = new TextSection(descriptionLines);
+
+            // Fix kerning for all text lines - hoping for terraforming and mining resources lines.
+            List<TextLineSection> textLines = new List<TextLineSection>();
+            foreach (TextLineSection tls in pageSections.TextLines)
+            {
+                List<Rectangle> accumulate = new List<Rectangle>();
+                foreach (Rectangle letter in tls.Line)
+                {
+                    Bytemap letterMask = ImageLetters.CopyRectangle(imageBinary, letter);
+                    accumulate.AddRange(ImageLetters.CleanupKerning(letterMask, false));
+                }
+                textLines.Add(new TextLineSection(new Line(tls.Line.Bounds, accumulate)));
+            }
+
+            return new PageSections(pageSections.Tables, descriptiveText, textLines, pageSections.Excluded, pageSections.Headlines);
+        }
     }
 }

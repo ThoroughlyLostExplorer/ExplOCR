@@ -270,7 +270,6 @@
     <Name>Giant3</Name>
     <Short>Class III Gas Giant</Short>
     <Description>Class III gas giants have primarily hydrogen and helium atmospheres without distinctive cloud layers. Their surface temperature typically ranges between 350 K and 800 K. They are primarily blue in colour because of optical scattering in the atmosphere - with the chance of wispy cloud layers from sulphides and chlorides.</Description>
-    <MinimalMatch>jovian</MinimalMatch>
     <Planet>true</Planet>
     <Star>false</Star>
   </DescriptionItem>
@@ -278,7 +277,6 @@
     <Name>Giant4</Name>
     <Short>Class IV Gas Giant</Short>
     <Description>Class IV gas giants have primarily hydrogen and helium atmospheres with carbon monoxide and upper clouds of alkali metals above lower cloud layers of silicates and iron compounds, hence he brighter colours. The temperature of their upper cloud layers is typically above 900 K.</Description>
-    <MinimalMatch>jovian</MinimalMatch>
     <Planet>true</Planet>
     <Star>false</Star>
   </DescriptionItem>
@@ -286,7 +284,6 @@
     <Name>Giant5</Name>
     <Short>Class V Gas Giant</Short>
     <Description>Class V gas giants have primarily hydrogen and helium atmospheres, with thick clouds of silicates and iron compounds, even metallic iron.They are the hottest type of gas giants with temperatures at their upper cloud decks above 1400 K, and much hotter in the lower layers, often emitting a dull glow from the internal heat within.</Description>
-    <MinimalMatch>jovian</MinimalMatch>
     <Planet>true</Planet>
     <Star>false</Star>
   </DescriptionItem>
