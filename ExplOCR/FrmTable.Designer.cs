@@ -37,7 +37,6 @@
             this.splitContainer = new System.Windows.Forms.SplitContainer();
             this.panelControlContainer = new System.Windows.Forms.Panel();
             this.buttonTEST = new System.Windows.Forms.Button();
-            this.editAstroBody = new ExplOCR.EditAstroBody();
             this.buttonCancel = new System.Windows.Forms.Button();
             this.buttonReRead = new System.Windows.Forms.Button();
             this.buttonSave = new System.Windows.Forms.Button();
@@ -46,9 +45,11 @@
             this.tabControl = new System.Windows.Forms.TabControl();
             this.tabPageImage = new System.Windows.Forms.TabPage();
             this.panelImageComtainer = new System.Windows.Forms.Panel();
-            this.imageDisplay = new ExplOCR.ImageDisplay();
             this.tabPageText = new System.Windows.Forms.TabPage();
             this.textOverview = new System.Windows.Forms.TextBox();
+            this.buttonMultiRead = new System.Windows.Forms.Button();
+            this.editAstroBody = new ExplOCR.EditAstroBody();
+            this.imageDisplay = new ExplOCR.ImageDisplay();
             ((System.ComponentModel.ISupportInitialize)(this.dataGrid)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer)).BeginInit();
             this.splitContainer.Panel1.SuspendLayout();
@@ -144,6 +145,7 @@
             // 
             // panelControlContainer
             // 
+            this.panelControlContainer.Controls.Add(this.buttonMultiRead);
             this.panelControlContainer.Controls.Add(this.buttonTEST);
             this.panelControlContainer.Controls.Add(this.editAstroBody);
             this.panelControlContainer.Controls.Add(this.buttonCancel);
@@ -160,26 +162,13 @@
             // buttonTEST
             // 
             this.buttonTEST.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.buttonTEST.Location = new System.Drawing.Point(85, 543);
+            this.buttonTEST.Location = new System.Drawing.Point(85, 545);
             this.buttonTEST.Name = "buttonTEST";
             this.buttonTEST.Size = new System.Drawing.Size(75, 23);
             this.buttonTEST.TabIndex = 23;
             this.buttonTEST.Text = "API Test";
             this.buttonTEST.UseVisualStyleBackColor = true;
             this.buttonTEST.Click += new System.EventHandler(this.buttonTEST_Click);
-            // 
-            // editAstroBody
-            // 
-            this.editAstroBody.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.editAstroBody.HasChanges = false;
-            this.editAstroBody.Location = new System.Drawing.Point(0, 0);
-            this.editAstroBody.Name = "editAstroBody";
-            this.editAstroBody.ReadOnly = false;
-            this.editAstroBody.Size = new System.Drawing.Size(328, 345);
-            this.editAstroBody.TabIndex = 19;
-            this.editAstroBody.StateChanged += new System.EventHandler(this.editAstroBody_StateChanged);
             // 
             // buttonCancel
             // 
@@ -270,14 +259,6 @@
             this.panelImageComtainer.Size = new System.Drawing.Size(451, 577);
             this.panelImageComtainer.TabIndex = 18;
             // 
-            // imageDisplay
-            // 
-            this.imageDisplay.Image = ((System.Drawing.Bitmap)(resources.GetObject("imageDisplay.Image")));
-            this.imageDisplay.Location = new System.Drawing.Point(0, 0);
-            this.imageDisplay.Name = "imageDisplay";
-            this.imageDisplay.Size = new System.Drawing.Size(150, 150);
-            this.imageDisplay.TabIndex = 0;
-            // 
             // tabPageText
             // 
             this.tabPageText.Controls.Add(this.textOverview);
@@ -300,6 +281,37 @@
             this.textOverview.ReadOnly = true;
             this.textOverview.Size = new System.Drawing.Size(451, 577);
             this.textOverview.TabIndex = 0;
+            // 
+            // buttonMultiRead
+            // 
+            this.buttonMultiRead.Location = new System.Drawing.Point(168, 545);
+            this.buttonMultiRead.Name = "buttonMultiRead";
+            this.buttonMultiRead.Size = new System.Drawing.Size(75, 23);
+            this.buttonMultiRead.TabIndex = 24;
+            this.buttonMultiRead.Text = "Multi-Read";
+            this.buttonMultiRead.UseVisualStyleBackColor = true;
+            this.buttonMultiRead.Click += new System.EventHandler(this.buttonMultiRead_Click);
+            // 
+            // editAstroBody
+            // 
+            this.editAstroBody.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.editAstroBody.HasChanges = false;
+            this.editAstroBody.Location = new System.Drawing.Point(0, 0);
+            this.editAstroBody.Name = "editAstroBody";
+            this.editAstroBody.ReadOnly = false;
+            this.editAstroBody.Size = new System.Drawing.Size(328, 345);
+            this.editAstroBody.TabIndex = 19;
+            this.editAstroBody.StateChanged += new System.EventHandler(this.editAstroBody_StateChanged);
+            // 
+            // imageDisplay
+            // 
+            this.imageDisplay.Image = ((System.Drawing.Bitmap)(resources.GetObject("imageDisplay.Image")));
+            this.imageDisplay.Location = new System.Drawing.Point(0, 0);
+            this.imageDisplay.Name = "imageDisplay";
+            this.imageDisplay.Size = new System.Drawing.Size(150, 150);
+            this.imageDisplay.TabIndex = 0;
             // 
             // FrmTable
             // 
@@ -349,5 +361,6 @@
         private System.Windows.Forms.Button buttonHide;
         private System.Windows.Forms.CheckBox checkReadOnly;
         private System.Windows.Forms.Button buttonTEST;
+        private System.Windows.Forms.Button buttonMultiRead;
     }
 }

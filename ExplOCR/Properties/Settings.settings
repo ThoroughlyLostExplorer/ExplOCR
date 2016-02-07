@@ -41,9 +41,6 @@
     <Setting Name="NetLogDir" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="PathBase" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">.\OCR</Value>
-    </Setting>
     <Setting Name="WordDistanceXLarge" Type="System.Int32" Scope="Application">
       <Value Profile="(Default)">5</Value>
     </Setting>
@@ -85,6 +82,9 @@
     </Setting>
     <Setting Name="APIServer" Type="System.String" Scope="Application">
       <Value Profile="(Default)">http://www.elitegalaxyonline.com/gravityformsapi/forms/25/submissions</Value>
+    </Setting>
+    <Setting Name="PathBase" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">.\OCR</Value>
     </Setting>
   </Settings>
 </SettingsFile>

@@ -262,4 +262,22 @@
 	  <BeltOnly>true</BeltOnly>
     <Unit>KM</Unit>
   </TableItem>
+  <TableItem>
+    <Name>MINING_RESERVES</Name>
+    <Description>MINING:</Description>
+    <AllText>true</AllText>
+    <NoText>false</NoText>
+    <Signed>false</Signed>
+    <ExcludeUnit>0</ExcludeUnit>
+    <Unit>LITERAL</Unit>
+  </TableItem>
+  <TableItem>
+    <Name>TERRAFORMING</Name>
+    <Description>TERRAFORMING:</Description>
+    <AllText>true</AllText>
+    <NoText>false</NoText>
+    <Signed>false</Signed>
+    <ExcludeUnit>0</ExcludeUnit>
+    <Unit>LITERAL</Unit>
+  </TableItem>
 </ArrayOfTableItem>

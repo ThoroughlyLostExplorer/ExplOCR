@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -35,15 +36,24 @@ namespace ExplOCR
 
             List<string> knowledge = new List<string>();
             List<char> netKeys = new List<char>();
-            string files = "abcdefghijklmnopqrstuvwy";
+            string files = "abcdefghijklmnopqrstuvwxyz";
             for (int i = 0; i < files.Length; i++)
             {
-                knowledge.Add(PathHelpers.BuildKnowledgeFilename(DescriptionsNetwork, files[i].ToString() + "_lower"));
-                netKeys.Add(files[i]);
+                if (File.Exists(PathHelpers.BuildKnowledgeFilename(DescriptionsNetwork, files[i].ToString() + "_lower")))
+                {
+                    knowledge.Add(PathHelpers.BuildKnowledgeFilename(DescriptionsNetwork, files[i].ToString() + "_lower"));
+                    netKeys.Add(files[i]);
+                }
+                if (File.Exists(PathHelpers.BuildKnowledgeFilename(DescriptionsNetwork, files[i].ToString() + "_upper")))
+                {
+                    knowledge.Add(PathHelpers.BuildKnowledgeFilename(DescriptionsNetwork, files[i].ToString() + "_upper"));
+                    netKeys.Add(char.ToUpper(files[i]));
+                }
             }
             knowledge.Add(PathHelpers.BuildKnowledgeFilename(DescriptionsNetwork, "delimiter"));
             netKeys.Add('.');
             netKeys.Add('#');
+            netKeys.Add('-');
 
             nnDescriptions = new NeuralNet(dimensionX, dimensionY, netKeys, knowledge);
             nnDescriptions.SaveFile = PathHelpers.BuildNetworkFilename(DescriptionsNetwork);

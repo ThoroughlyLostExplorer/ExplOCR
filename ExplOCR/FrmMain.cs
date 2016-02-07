@@ -327,6 +327,7 @@ namespace ExplOCR
 
             Bitmap binary, binarySplit;
             pageSections = LibExplOCR.PrepareBitmaps(bmp, out baseBmp, out binary, out binarySplit);
+            pageSections = ImageLetters.RefinePartition(pageSections, binary);
 
             drawBmpRaw = new Bitmap(binary);
             drawBmpRawSplit = new Bitmap(binarySplit);

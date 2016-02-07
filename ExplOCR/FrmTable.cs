@@ -34,6 +34,8 @@ namespace ExplOCR
         {
             InitializeComponent();
             buttonTEST.Visible = File.Exists(Application.ExecutablePath + ".api");
+            string[] args = Environment.GetCommandLineArgs();
+            buttonMultiRead.Visible = (args.Length == 2 && args[1].Contains("multiread"));
 
             dataTable.Columns.Add(HiddenIndexName, typeof(int));
             dataSet.Tables.Add(dataTable);
@@ -58,6 +60,7 @@ namespace ExplOCR
             buttonTEST.Enabled = !editAstroBody.HasChanges;
             buttonSave.Enabled = editAstroBody.HasChanges && !checkReadOnly.Checked;
             buttonReRead.Enabled = !checkReadOnly.Checked;
+            buttonMultiRead.Enabled = !checkReadOnly.Checked;
             buttonCancel.Enabled = editAstroBody.HasChanges;
             textRowFilter.Enabled = checkRowFilter.Checked;
             buttonApply.Enabled = checkRowFilter.Checked;
@@ -436,6 +439,65 @@ namespace ExplOCR
             }
         }
 
+        private void buttonMultiRead_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                List<int> selected = new List<int>();
+                foreach(DataGridViewCell cell in dataGrid.SelectedCells)
+                {
+                    if(!selected.Contains(cell.RowIndex))
+                    {
+                        selected.Add(cell.RowIndex);
+                    }
+                }
+
+                foreach (int process in selected)
+                {
+                    dataGrid.ClearSelection();
+                    dataGrid.Rows[process].Cells[0].Selected = true;
+                    UpdateEditFields(dataGrid.SelectedCells[0].RowIndex);
+                    bool stitch = false;
+                    OcrReader ocrReader = LibExplOCR.CreateOcrReader();
+                    Bitmap bmpStructure, bmpHeatmap;
+
+                    string[] files = GetArchiveFiles(dataItems[currentRow]);
+                    if (files.Length > 0)
+                    {
+                        foreach (string file in files)
+                        {
+                            using (Bitmap bmp = new Bitmap(Path.Combine(PathHelpers.BuildScreenDirectory(), file)))
+                            {
+                                ocrReader.StitchPrevious = stitch;
+                                if (!LibExplOCR.ProcessImage(ocrReader, bmp, out bmpStructure, out bmpHeatmap))
+                                {
+                                    MessageBox.Show("Sorry, failed.");
+                                    return;
+                                }
+                                ocrReader.StitchPrevious = false;
+                                textOverview.Text = OutputConverter.GetDataText(ocrReader.Items);
+                                if (!stitch)
+                                {
+                                    stitch = true;
+                                }
+                            }
+                        }
+                        editAstroBody.ResetControls(ocrReader.Items);
+                        editAstroBody.HasChanges = true;
+                        editAstroBody.SaveEditState();
+                    }
+                }
+                SaveData();
+                // This is a waste of resources, but we are still in beta.
+                initialized = false;
+                LoadData();
+                initialized = true;
+            }
+            catch
+            {
+            }
+        }
+
         #endregion
 
         #region Private Variables
@@ -464,5 +526,6 @@ namespace ExplOCR
             webAPI.WebTransferItems(dataItems[currentRow]);
 
         }
+
     }
 }

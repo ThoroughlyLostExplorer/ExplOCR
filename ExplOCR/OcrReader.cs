@@ -257,8 +257,8 @@ namespace ExplOCR
                 && tsl.Line.Bounds.Bottom > sections.Tables[0].Bounds.Top - 50;
             if (!afterTable && !afterDescription) return null;
             int index = sections.AllSections.IndexOf(tsl);
-            if (index < 0 || index + 1 >= sections.AllSections.Count) return null;
-            if (!afterDescription && !(sections.AllSections[index + 1] is HeadlineSection)) return null;
+            if (index <= 0 || index + 1 >= sections.AllSections.Count) return null;
+            if (!afterDescription && !(sections.AllSections[index + 1] is HeadlineSection) && !(sections.AllSections[index - 1] is TextSection)) return null;
 
             string mining = "";
             List<Rectangle> rs = new List<Rectangle>(tsl.Line);
@@ -383,6 +383,7 @@ namespace ExplOCR
 
             mining = mining.Replace("y", "j");
             mining = mining.Replace("reseaes", "reserves");
+            mining = mining.Replace("reseles", "reserves");
             for (int i = 0; i < itemConfig.MiningReserves.Length; i++)
             {
                 if (SimilarityMatch.WordsSimilar(mining, itemConfig.MiningReserves[i]))
@@ -687,10 +688,12 @@ namespace ExplOCR
         private string GuessDescription(string textOCR)
         {
             List<DescriptionItem> possible = new List<DescriptionItem>();
+            textOCR = NormalizeHyphens(textOCR);
             List<string> words = new List<string>(textOCR.Split(new char[] { ' ' }));
             foreach (DescriptionItem di in descriptionConfig)
             {
-                int wordCount = di.Description.Length - di.Description.Replace(" ", "").Length;
+                string desc = NormalizeHyphens(di.Description);
+                int wordCount = desc.Length - desc.Replace(" ", "").Length;
                 if (Math.Abs(words.Count - wordCount) < 4)
                 {
                     possible.Add(di);
@@ -716,7 +719,7 @@ namespace ExplOCR
             int bestScore = 10000;
             for (int i = 0; i < possible.Count; i++)
             {
-                string[] split = possible[i].Description.Split(new char[] { ' ' });
+                string[] split = NormalizeHyphens(possible[i].Description).Split(new char[] { ' ' });
                 int distance = SimilarityMatch.SentenceDistance(split, words.ToArray());
                 if (distance < bestScore)
                 {
@@ -725,6 +728,14 @@ namespace ExplOCR
                 }
             }
             return possible[best].Name;
+        }
+
+        private string NormalizeHyphens(string desc)
+        {
+            desc = desc.Replace('-', ' ');
+            desc = desc.Replace("  ", " ");
+            desc = desc.Replace("  ", " ");
+            return desc;
         }
 
 

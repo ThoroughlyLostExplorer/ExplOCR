@@ -60,6 +60,10 @@ namespace ExplOCR
             {
                 Application.Run(new FrmMain());
             }
+            else if (args[0] == "multiread")
+            {
+                Application.Run(new FrmUser());
+            }
             else if (args.Length == 2)
             {
                 using (OcrReader ocrReader = LibExplOCR.CreateOcrReader())
