@@ -68,7 +68,7 @@ namespace ExplOCR
 
             //RebuildKnowledge();
             //checkRaw.Checked = true;
-            //DoAutoTest();
+            DoAutoTest();
             //File.WriteAllLines(Path.Combine(PathHelpers.BuildAutoTestDirectory(), "debug.log"), debugStrings);
             currentScreen = 0;
             usingWords = true;

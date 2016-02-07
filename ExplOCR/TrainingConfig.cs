@@ -36,15 +36,15 @@ namespace ExplOCR
 
             List<string> knowledge = new List<string>();
             List<char> netKeys = new List<char>();
-            string files = "abcdefghijklmnopqrstuvwxyz";
+            string files = "aAbBcCdDefFgGhHiIjkKlLmMnNoOpPqrRsStTuvwWyY";
             for (int i = 0; i < files.Length; i++)
             {
-                if (File.Exists(PathHelpers.BuildKnowledgeFilename(DescriptionsNetwork, files[i].ToString() + "_lower")))
+                if (char.IsLower(files[i]))
                 {
                     knowledge.Add(PathHelpers.BuildKnowledgeFilename(DescriptionsNetwork, files[i].ToString() + "_lower"));
                     netKeys.Add(files[i]);
                 }
-                if (File.Exists(PathHelpers.BuildKnowledgeFilename(DescriptionsNetwork, files[i].ToString() + "_upper")))
+                if (char.IsUpper(files[i]))
                 {
                     knowledge.Add(PathHelpers.BuildKnowledgeFilename(DescriptionsNetwork, files[i].ToString() + "_upper"));
                     netKeys.Add(char.ToUpper(files[i]));
