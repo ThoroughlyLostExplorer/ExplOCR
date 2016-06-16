@@ -294,7 +294,7 @@ namespace ExplOCR
 
             for (int i = 1 /*sic!*/; i < section.Count; i++)
             {
-                if (section[i].Bounds.Top - section[i - 1].Bounds.Bottom >= 8)
+                if (section[i].Bounds.Top - section[i - 1].Bounds.Bottom >= Properties.Settings.Default.TextLineMaxDistance)
                 {
                     return false;
                 }
@@ -332,11 +332,11 @@ namespace ExplOCR
                 {
                     return false;
                 }
-                if (line.Bounds.Top - previous.Bottom > line.Bounds.Height + 5)
+                if (line.Bounds.Top - previous.Bottom > line.Bounds.Height + Properties.Settings.Default.TableLineMaxDist)
                 {
                     return false;
                 }
-                if (previousAvg > 0 && line.Bounds.Top - previousAvg > line.Bounds.Height + 5)
+                if (previousAvg > 0 && line.Bounds.Top - previousAvg > line.Bounds.Height + Properties.Settings.Default.TableLineMaxDist)
                 {
                     return false;
                 }
@@ -361,7 +361,7 @@ namespace ExplOCR
             }
 
             TableSection t = new TableSection(section);
-
+            if (!t.FirstLineValid || !t.LastLineValid) return false;
             return t.Gap.Width > 10 && t.Gap.Right < section[0].Bounds.Right - 5;
         }
 

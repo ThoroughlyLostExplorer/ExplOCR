@@ -140,7 +140,7 @@ namespace ExplOCR
                 Directory.CreateDirectory(PathHelpers.BuildAutoTestDirectory());
                 for (int i = 0; ; i++)
                 {
-                    string file = PathHelpers.BuildAutoTestFilename(i);
+                    string file = PathHelpers.BuildAutoTestFilename(i,0);
                     if (File.Exists(file))
                     {
                         continue;
@@ -419,13 +419,21 @@ namespace ExplOCR
             StringBuilder total = new StringBuilder();
             for(int i=0; i < test.Length; i++)
             {
-                total.AppendLine("File: " + PathHelpers.BuildAutoTestFilename(i));
+                total.AppendLine("File: " + PathHelpers.BuildAutoTestFilename(i, 0));
                 currentScreen = i;
-                if (!File.Exists(PathHelpers.BuildAutoTestFilename(i))) continue;
+                if (!File.Exists(PathHelpers.BuildAutoTestFilename(i, 0))) continue;
                 ocrReader.RawMode = checkRaw.Checked;
-                LibExplOCR.ProcessImageFile(ocrReader, PathHelpers.BuildAutoTestFilename(i));
+                LibExplOCR.ProcessImageFile(ocrReader, PathHelpers.BuildAutoTestFilename(i, 0));
+                for (int j = 1; j < 3; j++)
+                {
+                    if (!File.Exists(PathHelpers.BuildAutoTestFilename(i, j))) continue;
+                    ocrReader.RawMode = checkRaw.Checked;
+                    ocrReader.StitchPrevious = true;
+                    LibExplOCR.ProcessImageFile(ocrReader, PathHelpers.BuildAutoTestFilename(i, j));
+                    ocrReader.StitchPrevious = false;
+                }
                 string s = OutputConverter.GetDataTextClassic(ocrReader.Items);
-                string output = Path.Combine(results, Path.GetFileNameWithoutExtension(PathHelpers.BuildAutoTestFilename(i)) + ".txt");
+                string output = Path.Combine(results, Path.GetFileNameWithoutExtension(PathHelpers.BuildAutoTestFilename(i, 0)) + ".txt");
                 File.WriteAllText(output, s);
                 total.AppendLine(s);
             }

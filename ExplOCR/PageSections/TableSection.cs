@@ -38,7 +38,6 @@ namespace ExplOCR
             gap = bounds;
             foreach (Line line in lines)
             {
-                int max = 0;
                 if (line.Count == 0) continue;
 
                 bool intersect = false;
@@ -51,48 +50,32 @@ namespace ExplOCR
                 }
                 if (!intersect) continue;
 
-                Rectangle lineGap = bounds;
+                Rectangle lineGap = GetLineGap(line);
                 int begin = line[0].Left;
                 int end = line[line.Count - 1].Right;
-                for (int i = 0; i < line.Count; i++)
+                if (LineHasGap(gap, lineGap))
                 {
-                    if (i == 0)
+                    if (lineGap.Width > 10)
                     {
-                        begin = line[i].Left;
-                        if (line[i].Left - bounds.Left > bounds.Right - line[i].Right)
-                        {
-                            lineGap = new Rectangle(bounds.X, bounds.Y, line[i].Left - bounds.Left, bounds.Height);
-                        }
-                        else
-                        {
-                            lineGap = new Rectangle(line[i].Right, bounds.Y, bounds.Right - line[i].Right, bounds.Height);
-                        }
+                        gap = Rectangle.Intersect(gap, lineGap);
+                    }
+                    else if (begin - bounds.Left > bounds.Right - end && begin > 50)
+                    {
+                        gap.Width = Math.Max(begin - gap.X, 0);
+                    }
+                    else if (bounds.Right - end > 50)
+                    {
+                        gap.Width = Math.Max(gap.Right - end, 0);
+                        gap.X = end;
                     }
                     else
                     {
-                        if (line[i].Left - line[i - 1].Right > max)
-                        {
-                            max = line[i].Left - line[i - 1].Right;
-                            lineGap = new Rectangle(line[i - 1].Right, bounds.Y, max, bounds.Height);
-                        }
+                        gap = Rectangle.Intersect(gap, lineGap);
                     }
-                }
-                if (lineGap.Width > 10)
-                {
-                    gap = Rectangle.Intersect(gap, lineGap);
-                }
-                else if (begin - bounds.Left > bounds.Right - end && begin > 50)
-                {
-                    gap.Width = Math.Max(begin - gap.X, 0);
-                }
-                else if (bounds.Right - end > 50)
-                {
-                    gap.Width = Math.Max(gap.Right - end, 0);
-                    gap.X = end;
                 }
                 else
                 {
-                    gap = Rectangle.Intersect(gap, lineGap);
+
                 }
             }
 
@@ -100,17 +83,58 @@ namespace ExplOCR
             if (Count > 0) items.Add(itemCount);
             for (int i = 1 /*sic!*/; i < Count; i++)
             {
-                bool newSection = GetLineLeft(i).Count != 0;
-                if (GetLineRight(i - 1).Count == 0)
-                {
-                    newSection = false;
-                }
+                int diff = this.lines[i].Bounds.Top - this.lines[i-1].Bounds.Bottom;
+                bool newSection = diff > 17;
                 if (newSection)
                 {
                     itemCount++;
                 }
                 items.Add(itemCount);
             }
+        }
+
+        private Rectangle GetLineGap(Line line)
+        {
+            int max = 0;
+            Rectangle lineGap = bounds;
+            int begin = line[0].Left;
+            int end = line[line.Count - 1].Right;
+            for (int i = 0; i < line.Count; i++)
+            {
+                if (i == 0)
+                {
+                    begin = line[i].Left;
+                    if (line[i].Left - bounds.Left > bounds.Right - line[i].Right)
+                    {
+                        lineGap = new Rectangle(bounds.X, bounds.Y, line[i].Left - bounds.Left, bounds.Height);
+                    }
+                    else
+                    {
+                        lineGap = new Rectangle(line[i].Right, bounds.Y, bounds.Right - line[i].Right, bounds.Height);
+                    }
+                }
+                else
+                {
+                    if (line[i].Left - line[i - 1].Right > max)
+                    {
+                        max = line[i].Left - line[i - 1].Right;
+                        lineGap = new Rectangle(line[i - 1].Right, bounds.Y, max, bounds.Height);
+                    }
+                }
+            }
+            return lineGap;
+        }
+
+        private bool LineHasGap(Rectangle gap, Rectangle lineGap)
+        {
+            Rectangle nextGap = Rectangle.Intersect(gap, lineGap);
+            return nextGap.Width > 10;
+        }
+
+        public bool LineHasGap(int i)
+        {
+            Rectangle lineGap = GetLineGap(lines[i]);
+            return LineHasGap(Gap, lineGap);
         }
 
         public int Count
@@ -131,6 +155,43 @@ namespace ExplOCR
         public Line this[int n]
         {
             get { return lines[n]; }
+        }
+
+        public bool FirstLineValid
+        {
+            get
+            {
+                if (GetLineLeft(0).Count == 0) return false;
+                if (GetLineRight(0).Count == 0) return false;
+                return LineHasGap(Gap, GetLineGap(this[0]));
+            }
+        }
+
+        public bool LastLineValid
+        {
+            get
+            {
+                if (Count == 0)
+                {
+                    return false;
+                }
+                if (Count < 2)
+                {
+                    if (GetLineLeft(0).Count == 0) return false;
+                    if (GetLineRight(0).Count == 0) return false;
+                    return true;
+                }
+                else
+                {
+                    // Only single-line items can be invalid.
+                    if (items[Count - 1] == items[Count - 2]) return true;
+                    // Items with mission left/right are invalid.
+                    if (GetLineLeft(Count - 1).Count == 0) return false;
+                    if (GetLineRight(Count - 1).Count == 0) return false;
+                    // Better not consider wether a gap actually exists.
+                    return true;
+                }
+            }
         }
 
         public int GetLineItem(int n)

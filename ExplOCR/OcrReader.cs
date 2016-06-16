@@ -112,8 +112,9 @@ namespace ExplOCR
             CustomItemProcessing(output);
             if (StitchPrevious)
             {
-                output = MergeItems(currentItems, output);
+                output = MergeItems(baseItems, output);
             }
+            baseItems = output.ToArray();
             AppendMetaInformation(output);
             currentItems = output.ToArray();
         }
@@ -160,8 +161,9 @@ namespace ExplOCR
             CustomItemProcessing(output);
             if (StitchPrevious)
             {
-                output = MergeItems(currentItems, output);
+                output = MergeItems(baseItems, output);
             }
+            baseItems = output.ToArray();
             AppendMetaInformation(output);
             currentItems = output.ToArray();
         }
@@ -298,14 +300,39 @@ namespace ExplOCR
         {
             left = new List<Line>();
             right = new List<Line>();
+
+            // Only line in item is always a gap line, regardless of wether gap has minimum width.
+            if (table.Count <= i + 1 || table.GetLineItem(i + 1) > table.GetLineItem(i))
+            {
+                left.Add(table.GetLineLeft(i));
+                right.Add(table.GetLineRight(i));
+                return;
+            }
+
             for (int j=0; i + j < table.Count; j++)
             {
                 if (table.GetLineItem(i + j) > table.GetLineItem(i))
                 {
                     break;
                 }
-                left.Add(table.GetLineLeft(i + j));
-                right.Add(table.GetLineRight(i + j));
+                if (table.LineHasGap(i + j))
+                {
+                    // Left-and-right line with table gap
+                    left.Add(table.GetLineLeft(i + j));
+                    right.Add(table.GetLineRight(i + j));
+                }
+                else if (table.GetLineLeft(i + j).Count == 0)
+                {
+                    // No left part of line, i.e. right-only line.
+                    left.Add(table.GetLineLeft(i + j));
+                    right.Add(table.GetLineRight(i + j));
+                }
+                else
+                {
+                    // Left-only line that may extend beyond the gap.
+                    left.Add(table[i + j]);
+                    right.Add(new Line(table.Bounds, new Rectangle[0]));
+                }
             }
         }
 
@@ -401,10 +428,28 @@ namespace ExplOCR
         private TransferItem ReadTableItem(Bytemap imageGray, Bytemap imageBinary, Bytemap imageBinarySplit, List<Line> left, List<Line> right)
         {
             List<Rectangle> allLeft = new List<Rectangle>();
-            foreach (Line line in left)
+            int lettersRight = 0;
+            foreach (Line line in right)
             {
-                allLeft.AddRange(line);
+                lettersRight += line.Count;
             }
+
+            if (lettersRight > 0 || left.Count <= 1)
+            {
+                foreach (Line line in left)
+                {
+                    allLeft.AddRange(line);
+                }
+            }
+            else
+            {
+                allLeft.AddRange(left[0]);
+                for (int i = left.Count - 1; i >= 1; i--)
+                {
+                    right.Insert(0, left[i]);
+                }
+            }
+
             string leftText = "";
                 for (int i = 0; i < allLeft.Count; i++)
                 {
@@ -465,6 +510,25 @@ namespace ExplOCR
                         accumulateText += PredictAsLetter(imageGray, imageBinary, rightLine[j]);
                     }
                 }
+
+                // TODO: Eliminate this hack. Should be a configurable flag in TableItem class.
+                if (item.Name == "AGE" || item.Name == "RADIUS")
+                {
+                    // Never has a decimal point, so the decimal point is most likely a ','
+                    int indexDec = accumulateNumber.IndexOf('.');
+                    if (indexDec >= 0 && accumulateNumber.IndexOf(',') < 0)
+                    {
+                        accumulateNumber = accumulateNumber.Substring(0, indexDec) + accumulateNumber.Substring(indexDec + 1);
+                    }
+                }
+                if (item.Name == "ORBIT_PERIAPSIS")
+                {
+                    if (Math.Abs(GetNumericalValue(accumulateNumber, item.Percentage)) > 360)
+                    {
+                        accumulateNumber =  accumulateNumber.Replace(',', '.');
+                    }
+                }
+
                 if (accumulateNumber != "")
                 {
                     tv.Value = GetNumericalValue(accumulateNumber, item.Percentage);
@@ -769,7 +833,16 @@ namespace ExplOCR
             }
             else
             {
-                numberLength = Math.Max(numberLength - item.ExcludeUnit, 0);
+                int unit = item.ExcludeUnit;
+                if (item.Unit == "KM" && unit == 2 && rightLine.Count > 2)
+                {
+                    // Counter letter splits within the KM
+                    if (rightLine[rightLine.Count - 1].Width < 5 || rightLine[rightLine.Count - 2].Width < 5)
+                    {
+                        unit += 1;
+                    }
+                }
+                numberLength = Math.Max(numberLength - unit, 0);
             }
             return numberLength;
         }
@@ -783,6 +856,11 @@ namespace ExplOCR
             if (index > 0 && !numberText.Contains('.'))
             {
                 numberText = numberText.Substring(0, index) + '.' + numberText.Substring(index + 1);
+            }
+
+            if (numberText.Length > 1 && numberText[0] == '.')
+            {
+                numberText = "-" + numberText.Substring(1);
             }
 
             // Unprotect the commas.
@@ -909,6 +987,26 @@ namespace ExplOCR
                 }
                 if (ti.Name == "ATMOSPHERE_TYPE")
                 {
+                    // Multi-line atmosphere types -- example is "suitable for water-based\\life"
+                    if (ti.Values.Count > 1 && ti.Values[0].Unit == "LITERAL")
+                    {
+                        string complete = "";
+                        // Loop backwards over all items except ti.Values[0]
+                        for (int i = ti.Values.Count - 1; i > 0; i--)
+                        {
+                            if (ti.Values[i].Unit != "LITERAL")
+                            {
+                                // Skip anything irregular.
+                                continue;
+                            }
+                            // Gather up into "complete"
+                            complete = ti.Values[i].Text.Trim() + " " + complete;
+                            // Remove item no longer needed.
+                            ti.Values.RemoveAt(i);
+                        }
+                        ti.Values[0].Text += " "+complete;
+                    }
+
                     ti.Values[0].Text = ti.Values[0].Text.Trim();
                     if (ti.Values[0].Text.StartsWith("NO ")) ti.Values[0].Text = "NO ATMOSPHERE";
                     if (!itemConfig.AtmosphereTypes.Contains<string>(ti.Values[0].Text.Trim()))
@@ -921,7 +1019,8 @@ namespace ExplOCR
                     foreach (TransferItemValue v in ti.Values)
                     {
                         v.Text = v.Text.Trim();
-                        if (v.Text.StartsWith("NO ")) v.Text = v.Text.Substring(3);
+                        int word = v.Text.IndexOf(' ');
+                        if (word >= 0 && word < 3) v.Text = v.Text.Substring(word + 1);
                         if (!itemConfig.AtmosphereComponents.Contains<string>(v.Text.Trim()))
                         {
                             v.Text = ForceItemList(v.Text.Trim(), itemConfig.AtmosphereComponents);
@@ -934,7 +1033,8 @@ namespace ExplOCR
                     foreach (TransferItemValue v in ti.Values)
                     {
                         v.Text = v.Text.Trim();
-                        if (v.Text.StartsWith("NO ")) v.Text = v.Text.Substring(3);
+                        int word = v.Text.IndexOf(' ');
+                        if (word >= 0 && word < 3) v.Text = v.Text.Substring(word+1);
                         if (v.Text.StartsWith("ROC")) v.Text = "ROCK";
                         if (!itemConfig.SolidComponents.Contains<string>(v.Text.Trim()))
                         {
@@ -947,7 +1047,7 @@ namespace ExplOCR
                         sum = 0;
                     }
                 }
-                if (ti.Name == "RING_TYPE")
+                if (ti.Name == "RING_TYPE" && ti.Values.Count > 0)
                 {
                     if (ti.Values[0].Text.StartsWith("ROC")) ti.Values[0].Text = "ROCKY";
                     if (ti.Values[0].Text == "ICE") ti.Values[0].Text = "ICY";
@@ -981,19 +1081,64 @@ namespace ExplOCR
             return item;            
         }
 
+		// TODO: Merging needs work.
         private List<TransferItem> MergeItems(IEnumerable<TransferItem> previousItems, IEnumerable<TransferItem> newItems)
         {
+            List<string> multipleAllowed = new List<string>(new string[] { "RING_TYPE", "RING_INNER", "RING_OUTER", "RING_MASS" });
             bool overlapFound = false;
             List<TransferItem> merged = new List<TransferItem>(previousItems);
+            List<int> replace = new List<int>();
+            if (merged.Count > 0)
+            {
+                // The last item of the previous list is likely broken and should not be used.
+                if (!multipleAllowed.Contains(merged[merged.Count - 1].Name))
+                {
+                    replace.Add(merged.Count - 1);
+                }
+            }
+            if (merged.Count > 1)
+            {
+                // The this item may actually come from same broken text line
+                // (ROTATION_PERIOD/ROTATION_LOCKED)
+                if (!multipleAllowed.Contains(merged[merged.Count - 2].Name))
+                {
+                    replace.Add(merged.Count - 2);
+                }
+            }
+            bool first = true;
             foreach (TransferItem item in newItems)
             {
+                if (first)
+                {
+                    // Don't use the first item.
+                    first = false;
+                    continue;
+                }
                 if (ItemExistsIn(item, previousItems))
                 {
                     overlapFound = true;
                 }
                 if (overlapFound && !ItemExistsIn(item, previousItems))
                 {
-                    merged.Add(item);
+                    int replaceIndex = -1;
+                    foreach (int i in replace)
+                    {
+                        if (merged[i].Name == item.Name)
+                        {
+                            replaceIndex = i;
+                        }
+                    }
+                    if (replaceIndex >= 0 && merged[replaceIndex].Name == item.Name)
+                    {
+                        // The last item of the previous list is likely broken and should not be used.
+                        merged[replaceIndex] = item;
+                        replace.Remove(replaceIndex);
+                        replaceIndex = -1;
+                    }
+                    else
+                    {
+                        merged.Add(item);
+                    }
                 }
             }
             return merged;
@@ -1023,7 +1168,7 @@ namespace ExplOCR
                     }
                     else
                     {
-                       if (item.Values[i].Value != previous.Values[i].Value) match = false;
+                        if (item.Values[i].Value != previous.Values[i].Value) match = false;
                     }
                 }
                 if (match) return true;
@@ -1097,6 +1242,7 @@ namespace ExplOCR
         NeuralNet nnTables;
         NeuralNet nnDelimiters;
         TransferItem[] currentItems = new TransferItem[0];
+        TransferItem[] baseItems = new TransferItem[0];
         List<QualityData> qualityData = new List<QualityData>();
         bool rawMode;
     }
