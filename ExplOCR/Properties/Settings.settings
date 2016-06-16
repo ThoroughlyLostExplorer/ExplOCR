@@ -75,7 +75,7 @@
       <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="IdentityKey" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">b040d9d28633f7e5ee219c7c0e84885c</Value>
+      <Value Profile="(Default)" />
     </Setting>
     <Setting Name="IdentityName" Type="System.String" Scope="Application">
       <Value Profile="(Default)">ThoroughlyLostExplorer</Value>
@@ -85,6 +85,12 @@
     </Setting>
     <Setting Name="PathBase" Type="System.String" Scope="Application">
       <Value Profile="(Default)">.\OCR</Value>
+    </Setting>
+    <Setting Name="TextLineMaxDistance" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">10</Value>
+    </Setting>
+    <Setting Name="TableLineMaxDist" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">14</Value>
     </Setting>
   </Settings>
 </SettingsFile>

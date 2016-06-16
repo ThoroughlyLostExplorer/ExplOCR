@@ -271,7 +271,7 @@ namespace ExplOCR.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("b040d9d28633f7e5ee219c7c0e84885c")]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string IdentityKey {
             get {
                 return ((string)(this["IdentityKey"]));
@@ -302,6 +302,24 @@ namespace ExplOCR.Properties {
         public string PathBase {
             get {
                 return ((string)(this["PathBase"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("10")]
+        public int TextLineMaxDistance {
+            get {
+                return ((int)(this["TextLineMaxDistance"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("14")]
+        public int TableLineMaxDist {
+            get {
+                return ((int)(this["TableLineMaxDist"]));
             }
         }
     }

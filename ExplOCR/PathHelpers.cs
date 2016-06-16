@@ -124,9 +124,16 @@ namespace ExplOCR
             return Path.Combine(BuildWordsDirectory(), name + ".txt");
         }
 
-        public static string BuildAutoTestFilename(int screen)
+        public static string BuildAutoTestFilename(int screen, int stitch)
         {
-            return Path.Combine(BuildAutoTestDirectory(), "sysmap" + screen.ToString("D4") + ".png");
+            if (stitch == 0)
+            {
+                return Path.Combine(BuildAutoTestDirectory(), "sysmap" + screen.ToString("D4") + ".png");
+            }
+            else
+            {
+                return Path.Combine(BuildAutoTestDirectory(), "sysmap" + screen.ToString("D4") + "_" + stitch.ToString() + ".png");
+            }
         }
         
         static string PathBase

@@ -38,7 +38,45 @@ namespace ExplOCR
             }
         }
 
+		// TODO: Use common subsequence algorithm?
         public static int WordDistance(string a, string b)
+        {
+            int standard = WordDistanceInner(a, b);
+            string common = MaxCommonSubstring(a, b);
+            if (common.Length > 0)
+            {
+                string aBefore = a.Substring(0, a.IndexOf(common));
+                string bBefore = b.Substring(0, b.IndexOf(common));
+                string aAfter = a.Substring(a.IndexOf(common) + common.Length);
+                string bAfter = b.Substring(b.IndexOf(common) + common.Length);
+
+                int improved = SentenceWordDistance(new string[] { aBefore, aAfter }, new string[] { bBefore, bAfter });
+                return Math.Min(standard, improved);
+            }
+            else
+            {
+                return standard;
+            }
+        }
+
+        public static int WordDistanceX(string a, string b, int X)
+        {
+            int best = WordDistanceInner(a, b);
+            return best;
+            for (int i = 0; i < a.Length; i++)
+            {
+                string sub = a.Substring(0, i) + a.Substring(i + 1);
+                best = Math.Min(best, WordDistanceX(sub, b, X+1) + 1);
+            }
+            for (int i = 0; i < b.Length; i++)
+            {
+                string sub = b.Substring(0, i) + b.Substring(i + 1);
+                best = Math.Min(best, WordDistanceX(a, sub, X+1) + 1);
+            }
+            return best;
+        }
+
+        public static int WordDistanceInner(string a, string b)
         {
             int i = 0;
             int j = 0;
@@ -259,9 +297,27 @@ namespace ExplOCR
             return a == b;
         }
 
+		//TODO: Improve algorithm/performance.
+        private static string MaxCommonSubstring(string a, string b)
+        {
+            string best = "";
+            for (int i = a.Length; i > 0; i--)
+            {
+                for (int j = 0; j + i <= a.Length; j++)
+                {
+                    if (b.Contains(a.Substring(j, i)))
+                    {
+                        return a.Substring(j, i);
+                    }
+                }
+            }
+            return "";
+        }
+
         static char[] ListSpace = new char[] { ' ' };
         static char[] ListDelimiter = new char[] { '.', ',', ':', ';' };
         static string[] EquivalenceReductionFrom = new string[] { "II" };//, "AX", "TY" };
         static string[] EquivalenceReductionTo = new string[] { "H", }; //"W", "W" };
+
     }
 }
