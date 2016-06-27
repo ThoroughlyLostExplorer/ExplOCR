@@ -43,6 +43,8 @@
             this.labelDescription = new System.Windows.Forms.Label();
             this.labelCategories = new System.Windows.Forms.Label();
             this.panelContainer = new System.Windows.Forms.Panel();
+            this.label3 = new System.Windows.Forms.Label();
+            this.textCoords = new System.Windows.Forms.TextBox();
             this.splitContainer = new System.Windows.Forms.SplitContainer();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridEdit)).BeginInit();
             this.panelContainer.SuspendLayout();
@@ -66,11 +68,11 @@
             this.textDescription.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textDescription.Location = new System.Drawing.Point(0, 177);
+            this.textDescription.Location = new System.Drawing.Point(0, 201);
             this.textDescription.Multiline = true;
             this.textDescription.Name = "textDescription";
             this.textDescription.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.textDescription.Size = new System.Drawing.Size(288, 143);
+            this.textDescription.Size = new System.Drawing.Size(288, 119);
             this.textDescription.TabIndex = 18;
             this.textDescription.TextChanged += new System.EventHandler(this.EditField_TextChanged);
             // 
@@ -129,7 +131,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.comboType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboType.FormattingEnabled = true;
-            this.comboType.Location = new System.Drawing.Point(58, 53);
+            this.comboType.Location = new System.Drawing.Point(58, 79);
             this.comboType.Name = "comboType";
             this.comboType.Size = new System.Drawing.Size(230, 21);
             this.comboType.TabIndex = 27;
@@ -147,7 +149,7 @@
             // labelType
             // 
             this.labelType.AutoSize = true;
-            this.labelType.Location = new System.Drawing.Point(0, 56);
+            this.labelType.Location = new System.Drawing.Point(0, 82);
             this.labelType.Name = "labelType";
             this.labelType.Size = new System.Drawing.Size(34, 13);
             this.labelType.TabIndex = 26;
@@ -167,7 +169,7 @@
             // 
             this.textCategories.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textCategories.Location = new System.Drawing.Point(104, 90);
+            this.textCategories.Location = new System.Drawing.Point(107, 114);
             this.textCategories.Multiline = true;
             this.textCategories.Name = "textCategories";
             this.textCategories.ScrollBars = System.Windows.Forms.ScrollBars.Both;
@@ -178,7 +180,7 @@
             // labelDescription
             // 
             this.labelDescription.AutoSize = true;
-            this.labelDescription.Location = new System.Drawing.Point(0, 161);
+            this.labelDescription.Location = new System.Drawing.Point(0, 185);
             this.labelDescription.Name = "labelDescription";
             this.labelDescription.Size = new System.Drawing.Size(101, 13);
             this.labelDescription.TabIndex = 23;
@@ -187,7 +189,7 @@
             // labelCategories
             // 
             this.labelCategories.AutoSize = true;
-            this.labelCategories.Location = new System.Drawing.Point(0, 93);
+            this.labelCategories.Location = new System.Drawing.Point(0, 114);
             this.labelCategories.Name = "labelCategories";
             this.labelCategories.Size = new System.Drawing.Size(98, 13);
             this.labelCategories.TabIndex = 24;
@@ -195,6 +197,8 @@
             // 
             // panelContainer
             // 
+            this.panelContainer.Controls.Add(this.label3);
+            this.panelContainer.Controls.Add(this.textCoords);
             this.panelContainer.Controls.Add(this.label1);
             this.panelContainer.Controls.Add(this.textSystem);
             this.panelContainer.Controls.Add(this.textDescription);
@@ -210,6 +214,25 @@
             this.panelContainer.Name = "panelContainer";
             this.panelContainer.Size = new System.Drawing.Size(291, 320);
             this.panelContainer.TabIndex = 29;
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(0, 56);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(54, 13);
+            this.label3.TabIndex = 29;
+            this.label3.Text = "GalCoord:";
+            // 
+            // textCoords
+            // 
+            this.textCoords.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textCoords.Location = new System.Drawing.Point(58, 53);
+            this.textCoords.Name = "textCoords";
+            this.textCoords.Size = new System.Drawing.Size(230, 20);
+            this.textCoords.TabIndex = 28;
+            this.textCoords.TextChanged += new System.EventHandler(this.EditField_TextChanged);
             // 
             // splitContainer
             // 
@@ -264,5 +287,7 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn columnEditName;
         private System.Windows.Forms.DataGridViewTextBoxColumn columnEditIndex;
         private System.Windows.Forms.DataGridViewTextBoxColumn columnEditValue;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.TextBox textCoords;
     }
 }

@@ -372,6 +372,11 @@ namespace ExplOCR
                 change = false;
                 foreach (Line line in description)
                 {
+                    if (lines.Count > 100)
+                    {
+                        // Safety for unsuitable screenshots
+                        break;
+                    }
                     if (line.Bounds.Height < Properties.Settings.Default.DimensionY * 1.5)
                     {
                         lines.Add(line);
