@@ -41,6 +41,7 @@
             this.configToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.miConfigNetLogDir = new System.Windows.Forms.ToolStripMenuItem();
             this.miConfigSaveDirectories = new System.Windows.Forms.ToolStripMenuItem();
+            this.miConfigureKeys = new System.Windows.Forms.ToolStripMenuItem();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.panelImageContainer = new System.Windows.Forms.Panel();
             this.imageDisplay = new ExplOCR.ImageDisplay();
@@ -61,7 +62,8 @@
             this.textShort = new System.Windows.Forms.TextBox();
             this.timerTick = new System.Windows.Forms.Timer(this.components);
             this.errorProvider = new System.Windows.Forms.ErrorProvider(this.components);
-            this.miConfigureKeys = new System.Windows.Forms.ToolStripMenuItem();
+            this.label3 = new System.Windows.Forms.Label();
+            this.textCoords = new System.Windows.Forms.TextBox();
             this.menuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -164,6 +166,13 @@
             this.miConfigSaveDirectories.Text = "Save Directories";
             this.miConfigSaveDirectories.Click += new System.EventHandler(this.miConfigSaveDirectories_Click);
             // 
+            // miConfigureKeys
+            // 
+            this.miConfigureKeys.Name = "miConfigureKeys";
+            this.miConfigureKeys.Size = new System.Drawing.Size(227, 22);
+            this.miConfigureKeys.Text = "Screenshot Key Combination";
+            this.miConfigureKeys.Click += new System.EventHandler(this.miConfigureKeys_Click);
+            // 
             // splitContainer1
             // 
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -233,6 +242,8 @@
             // 
             // splitContainer2.Panel1
             // 
+            this.splitContainer2.Panel1.Controls.Add(this.textCoords);
+            this.splitContainer2.Panel1.Controls.Add(this.label3);
             this.splitContainer2.Panel1.Controls.Add(this.textDescription);
             this.splitContainer2.Panel1.Controls.Add(this.labelCategories);
             this.splitContainer2.Panel1.Controls.Add(this.labelDescription);
@@ -257,17 +268,17 @@
             this.textDescription.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textDescription.Location = new System.Drawing.Point(8, 158);
+            this.textDescription.Location = new System.Drawing.Point(8, 184);
             this.textDescription.Multiline = true;
             this.textDescription.Name = "textDescription";
             this.textDescription.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.textDescription.Size = new System.Drawing.Size(288, 107);
+            this.textDescription.Size = new System.Drawing.Size(288, 81);
             this.textDescription.TabIndex = 26;
             // 
             // labelCategories
             // 
             this.labelCategories.AutoSize = true;
-            this.labelCategories.Location = new System.Drawing.Point(8, 80);
+            this.labelCategories.Location = new System.Drawing.Point(5, 118);
             this.labelCategories.Name = "labelCategories";
             this.labelCategories.Size = new System.Drawing.Size(98, 13);
             this.labelCategories.TabIndex = 28;
@@ -276,7 +287,7 @@
             // labelDescription
             // 
             this.labelDescription.AutoSize = true;
-            this.labelDescription.Location = new System.Drawing.Point(8, 142);
+            this.labelDescription.Location = new System.Drawing.Point(5, 168);
             this.labelDescription.Name = "labelDescription";
             this.labelDescription.Size = new System.Drawing.Size(101, 13);
             this.labelDescription.TabIndex = 27;
@@ -286,7 +297,7 @@
             // 
             this.textCategories.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textCategories.Location = new System.Drawing.Point(112, 77);
+            this.textCategories.Location = new System.Drawing.Point(112, 118);
             this.textCategories.Multiline = true;
             this.textCategories.Name = "textCategories";
             this.textCategories.ScrollBars = System.Windows.Forms.ScrollBars.Both;
@@ -307,7 +318,7 @@
             // checkStitch
             // 
             this.checkStitch.AutoSize = true;
-            this.checkStitch.Location = new System.Drawing.Point(79, 54);
+            this.checkStitch.Location = new System.Drawing.Point(79, 79);
             this.checkStitch.Name = "checkStitch";
             this.checkStitch.Size = new System.Drawing.Size(114, 17);
             this.checkStitch.TabIndex = 5;
@@ -385,12 +396,21 @@
             // 
             this.errorProvider.ContainerControl = this;
             // 
-            // miConfigureKeys
+            // label3
             // 
-            this.miConfigureKeys.Name = "miConfigureKeys";
-            this.miConfigureKeys.Size = new System.Drawing.Size(227, 22);
-            this.miConfigureKeys.Text = "Screenshot Key Combination";
-            this.miConfigureKeys.Click += new System.EventHandler(this.miConfigureKeys_Click);
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(8, 57);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(54, 13);
+            this.label3.TabIndex = 30;
+            this.label3.Text = "GalCoord:";
+            // 
+            // textCoords
+            // 
+            this.textCoords.Location = new System.Drawing.Point(79, 54);
+            this.textCoords.Name = "textCoords";
+            this.textCoords.Size = new System.Drawing.Size(133, 20);
+            this.textCoords.TabIndex = 31;
             // 
             // FrmUser
             // 
@@ -456,5 +476,7 @@
         private System.Windows.Forms.Button buttonBrowse;
         private System.Windows.Forms.ToolStripMenuItem miConfigSaveDirectories;
         private System.Windows.Forms.ToolStripMenuItem miConfigureKeys;
+        private System.Windows.Forms.TextBox textCoords;
+        private System.Windows.Forms.Label label3;
     }
 }

@@ -50,7 +50,9 @@ namespace ExplOCR
 
         private void ProcessScreenshot(Bitmap bmp)
         {
-            textSystem.Text = LibExplOCR.GetCurrentSystemName(Properties.Settings.Default.NetLogDir);
+            string currentCoords;
+            textSystem.Text = LibExplOCR.GetCurrentSystemName(Properties.Settings.Default.NetLogDir, out currentCoords);
+            textCoords.Text = currentCoords;
             if (string.IsNullOrEmpty(textSystem.Text))
             {
                 errorProvider.SetError(textSystem, "Possibly you need to configure your NetLog directory in menu Configuration / NetLog Directory");
@@ -116,7 +118,7 @@ namespace ExplOCR
                 archiveNames.Add(Path.GetFileName(name));
             }
 
-            LibExplOCR.SaveInfo(textXML, textSystem.Text, textBody.Text, textDescription.Text, textCategories.Text, archiveNames);
+            LibExplOCR.SaveInfo(textXML, textSystem.Text, textBody.Text, textDescription.Text, textCategories.Text, textCoords.Text, archiveNames);
             ConditionalMinimize();
         }
 
@@ -279,7 +281,7 @@ namespace ExplOCR
         private void buttonEdit_Click(object sender, EventArgs e)
         {
 
-            TransferItem[][] editBase = new TransferItem[1][] { LibExplOCR.BuildInfoArray(textXML, textSystem.Text, textBody.Text, textDescription.Text, textCategories.Text, new List<string>()) };
+            TransferItem[][] editBase = new TransferItem[1][] { LibExplOCR.BuildInfoArray(textXML, textSystem.Text, textBody.Text, textDescription.Text, textCategories.Text, textCoords.Text, new List<string>()) };
             using (FrmQuickEdit dlg = new FrmQuickEdit())
             {
                 dlg.SetData(editBase, 0);

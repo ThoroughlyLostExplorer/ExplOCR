@@ -82,6 +82,7 @@ namespace ExplOCR
             {
                 textSystem.ReadOnly = value;
                 textBody.ReadOnly = value;
+                textCoords.ReadOnly = value;
                 textCategories.ReadOnly = value;
                 textDescription.ReadOnly = value;
                 comboType.Enabled = !value;
@@ -96,6 +97,7 @@ namespace ExplOCR
             {
                 textSystem.Text = "";
                 textBody.Text = "";
+                textCoords.Text = "";
                 textCategories.Text = "";
                 textDescription.Text = "";
             }
@@ -111,6 +113,7 @@ namespace ExplOCR
 
         internal void ResetControls(TransferItem[] data)
         {
+            SystemCoordinates sc = new SystemCoordinates();
             dataGridEdit.Rows.Clear();
             bool skippedHeadline = false;
             for (int i = 0; i < data.Length; i++)
@@ -135,6 +138,18 @@ namespace ExplOCR
                 {
                     textBody.Text = data[i].Values[0].Text;
                 }
+                else if (data[i].Name == WellKnownItems.GalCoordX && data[i].Values.Count > 0)
+                {
+                    sc.X = data[i].Values[0].Value;
+                }
+                else if (data[i].Name == WellKnownItems.GalCoordY && data[i].Values.Count > 0)
+                {
+                    sc.Y = data[i].Values[0].Value;
+                }
+                else if (data[i].Name == WellKnownItems.GalCoordZ && data[i].Values.Count > 0)
+                {
+                    sc.Z = data[i].Values[0].Value;
+                }
                 else if (data[i].Name == WellKnownItems.CustomCategory && data[i].Values.Count > 0)
                 {
                     textCategories.Text = data[i].Values[0].Text.Replace(";", Environment.NewLine);
@@ -155,6 +170,8 @@ namespace ExplOCR
                     }
                 }
             }
+
+            textCoords.Text = sc.ToString();
         }
 
         private void AddItemToGrid(TransferItem item)
@@ -186,6 +203,7 @@ namespace ExplOCR
             double[] compositionValues = new double[3] { double.NaN, double.NaN, double.NaN };
             string[] atmosphereNames = new string[3];
             double[] atmosphereValues = new double[3] { double.NaN, double.NaN, double.NaN };
+            SystemCoordinates sc = LibExplOCR.ParseCoordinateValues(textCoords.Text);
 
             bool error = false; ;
             List<TransferItem> items = new List<TransferItem>();
@@ -197,6 +215,19 @@ namespace ExplOCR
 
             ti = new TransferItem(WellKnownItems.BodyCode);
             ti.Values.Add(new TransferItemValue(textBody.Text));
+            items.Add(ti);
+
+            ti = new TransferItem(WellKnownItems.GalCoordX);
+            ti.Values.Add(new TransferItemValue(""));
+            ti.Values[0].Value = sc.X;
+            items.Add(ti);
+            ti = new TransferItem(WellKnownItems.GalCoordY);
+            ti.Values.Add(new TransferItemValue(""));
+            ti.Values[0].Value = sc.Y;
+            items.Add(ti);
+            ti = new TransferItem(WellKnownItems.GalCoordZ);
+            ti.Values.Add(new TransferItemValue(""));
+            ti.Values[0].Value = sc.Z;
             items.Add(ti);
 
             ti = new TransferItem(WellKnownItems.CustomCategory);

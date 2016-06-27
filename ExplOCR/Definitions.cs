@@ -152,6 +152,9 @@ namespace ExplOCR
     {
         public const string System = "SYSTEM";
         public const string BodyCode = "BODY";
+        public const string GalCoordX = "GAL_COORD_X";
+        public const string GalCoordY = "GAL_COORD_Y";
+        public const string GalCoordZ = "GAL_COORD_Z";
         public const string Description = "DESCRIPTION";
         public const string CustomDescription = "CUSTOM_DESCRIPTION";
         public const string CustomCategory = "CUSTOM_CATEGORY";
@@ -187,5 +190,15 @@ namespace ExplOCR
 
         byte[] bytes;
         Rectangle frame;
+    }
+
+    public class SystemCoordinates
+    {
+        public double X, Y, Z;
+
+        public override string ToString()
+        {
+            return "(" + X.ToString() + "," + Y.ToString() + "," + Z.ToString() + ")";
+        }
     }
 }

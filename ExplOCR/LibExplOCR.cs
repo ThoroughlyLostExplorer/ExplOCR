@@ -243,11 +243,12 @@ namespace ExplOCR
             }
         }
 
-        public static TransferItem[] BuildInfoArray(string xml, string system, string body, string custom, string category, List<string> archiveNames)
+        public static TransferItem[] BuildInfoArray(string xml, string system, string body, string custom, string category, string coords, List<string> archiveNames)
         {
             XmlSerializer ser = new XmlSerializer(typeof(TransferItem[]));
             StringReader reader = new StringReader(xml);
             TransferItem[] items = ser.Deserialize(reader) as TransferItem[];
+            SystemCoordinates sc = ParseCoordinateValues(coords);
 
             foreach (TransferItem item in items)
             {
@@ -272,6 +273,26 @@ namespace ExplOCR
             ti.Values[0].Text = body;
             ti.Values[0].Value = double.NaN;
             info.Add(ti);
+
+            ti = new TransferItem();
+            ti.Name = WellKnownItems.GalCoordX;
+            ti.Values = new List<TransferItemValue>(new TransferItemValue[] { new TransferItemValue() });
+            ti.Values[0].Text = "";
+            ti.Values[0].Value = sc.X;
+            info.Add(ti);
+            ti = new TransferItem();
+            ti.Name = WellKnownItems.GalCoordY;
+            ti.Values = new List<TransferItemValue>(new TransferItemValue[] { new TransferItemValue() });
+            ti.Values[0].Text = "";
+            ti.Values[0].Value = sc.Y;
+            info.Add(ti);
+            ti = new TransferItem();
+            ti.Name = WellKnownItems.GalCoordZ;
+            ti.Values = new List<TransferItemValue>(new TransferItemValue[] { new TransferItemValue() });
+            ti.Values[0].Text = "";
+            ti.Values[0].Value = sc.Z;
+            info.Add(ti);
+            
             ti = new TransferItem();
             ti.Name = WellKnownItems.CustomCategory;
             ti.Values = new List<TransferItemValue>(new TransferItemValue[] { new TransferItemValue() });
@@ -312,14 +333,41 @@ namespace ExplOCR
             return info.ToArray();
         }
 
-        public static void SaveInfo(string xml, string system, string body, string custom, string category, List<string> archiveNames)
+        public static SystemCoordinates ParseCoordinateValues(string coords)
+        {
+            // Remove '(' and ')'
+            if (coords.StartsWith("("))
+            {
+                coords = coords.Substring(1);
+            }
+            if (coords.EndsWith(")"))
+            {
+                coords = coords.Substring(0,coords.Length-1);
+            }
+
+            string[] split = coords.Split(new char[] { ',' });
+            if (split.Length != 3)
+            {
+                return new SystemCoordinates();
+            }
+            SystemCoordinates sc = new SystemCoordinates();
+            if (!double.TryParse(split[0], out sc.X) ||
+                 !double.TryParse(split[1], out sc.Y) ||
+                 !double.TryParse(split[2], out sc.Z))
+            {
+                return new SystemCoordinates();
+            }
+            return sc;
+        }
+
+        public static void SaveInfo(string xml, string system, string body, string custom, string category, string coords, List<string> archiveNames)
         {
             if (!Directory.Exists(PathHelpers.BuildUserSaveDirectory()))
             {
                 Directory.CreateDirectory(PathHelpers.BuildUserSaveDirectory());
             }
 
-            TransferItem[] items = BuildInfoArray(xml, system, body, custom, category, archiveNames);
+            TransferItem[] items = BuildInfoArray(xml, system, body, custom, category, coords, archiveNames);
 
 
 
@@ -345,8 +393,9 @@ namespace ExplOCR
             }
         }
 
-        public static string GetCurrentSystemName(string logDir)
+        public static string GetCurrentSystemName(string logDir, out string coords)
         {
+            coords = "";
             try
             {
                 if (string.IsNullOrEmpty(logDir))
@@ -369,10 +418,11 @@ namespace ExplOCR
                         if (idx >= 0)
                         {
                             log = log.Substring(idx);
-                            int idxA = log.IndexOf('(');
-                            int idxB = log.IndexOf(')');
+                            int idxA = log.IndexOf('\"');
+                            int idxB = log.IndexOf('\"', idxA+1);
                             if (idxA >= 0 && idxB >= 0)
                             {
+                                coords = ParseCoordinates(log);
                                 return log.Substring(idxA + 1, idxB - idxA - 1);
                             }
                         }
@@ -383,6 +433,23 @@ namespace ExplOCR
             {
             }
             return "";
+        }
+
+        private static string ParseCoordinates(string log)
+        {
+            int idx = log.IndexOf(")ly");
+            if (idx < 0)
+            {
+                return "";
+            }
+            log = log.Substring(0, idx);
+            idx = log.IndexOf("StarPos:(");
+            if (idx < 0)
+            {
+                return "";
+            }
+            log = log.Substring(idx + "StarPos:(".Length);
+            return "("+log+")";
         }
     }
 }
