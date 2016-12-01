@@ -317,6 +317,8 @@ namespace ExplOCR
                 }
                 if (table.LineHasGap(i + j))
                 {
+                    // No two lft-and-right lines in same item
+                    if (j > 0) break;
                     // Left-and-right line with table gap
                     left.Add(table.GetLineLeft(i + j));
                     right.Add(table.GetLineRight(i + j));
